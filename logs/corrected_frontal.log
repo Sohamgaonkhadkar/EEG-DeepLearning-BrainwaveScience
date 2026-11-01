@@ -1,0 +1,35 @@
+Command: C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\Scripts\python.exe train.py --channels frontal --seed 0
+Working directory: C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\eeg_dl_exam_3hr\part1_diagnose
+data: (420, 8, 641), subjects=10, class balance=[210 210]
+EEGNet: 2002 params
+epoch   0  loss 0.722  val 0.536
+epoch   1  loss 0.670  val 0.560
+epoch   2  loss 0.648  val 0.643
+epoch   3  loss 0.685  val 0.679
+epoch   4  loss 0.668  val 0.726
+epoch   5  loss 0.641  val 0.762
+epoch   6  loss 0.699  val 0.726
+epoch   7  loss 0.617  val 0.702
+epoch   8  loss 0.660  val 0.690
+epoch   9  loss 0.658  val 0.702
+epoch  10  loss 0.662  val 0.690
+epoch  11  loss 0.614  val 0.702
+epoch  12  loss 0.601  val 0.702
+epoch  13  loss 0.617  val 0.714
+epoch  14  loss 0.665  val 0.714
+epoch  15  loss 0.597  val 0.714
+epoch  16  loss 0.604  val 0.714
+epoch  17  loss 0.594  val 0.702
+epoch  18  loss 0.649  val 0.702
+epoch  19  loss 0.607  val 0.702
+epoch  20  loss 0.542  val 0.702
+epoch  21  loss 0.570  val 0.702
+epoch  22  loss 0.542  val 0.702
+epoch  23  loss 0.645  val 0.702
+epoch  24  loss 0.624  val 0.690
+epoch  25  loss 0.651  val 0.714
+epoch  26  loss 0.612  val 0.690
+epoch  27  loss 0.561  val 0.690
+epoch  28  loss 0.603  val 0.667
+epoch  29  loss 0.567  val 0.655
+{"channels": "frontal", "seed": 0, "best_epoch": 5, "n_test": 84, "protocol": "subject_disjoint_validation", "epochs": 30, "lr": 0.001, "batch_size": 64, "n_params": 2002, "train_subjects": [1, 2, 3, 4, 5, 6], "validation_subjects": [7, 8], "test_subjects": [9, 10], "n_train": 252, "n_validation": 84, "best_validation_acc": 0.7619047619047619, "selected_channels": ["Fp1", "Fpz", "Fp2", "AF3", "AF4", "F3", "Fz", "F4"], "history": [{"epoch": 0, "train_loss": 0.7049109528935145, "validation_loss": 0.6922544836997986, "validation_acc": 0.5357142857142857}, {"epoch": 1, "train_loss": 0.69376588246179, "validation_loss": 0.6903946995735168, "validation_acc": 0.5595238095238095}, {"epoch": 2, "train_loss": 0.6682725510899983, "validation_loss": 0.6869894862174988, "validation_acc": 0.6428571428571429}, {"epoch": 3, "train_loss": 0.684636274027446, "validation_loss": 0.6823498606681824, "validation_acc": 0.6785714285714286}, {"epoch": 4, "train_loss": 0.6695324343348307, "validation_loss": 0.6770474910736084, "validation_acc": 0.7261904761904762}, {"epoch": 5, "train_loss": 0.6568370045177521, "validation_loss": 0.6717602610588074, "validation_acc": 0.7619047619047619}, {"epoch": 6, "train_loss": 0.6614499934135921, "validation_loss": 0.666117250919342, "validation_acc": 0.7261904761904762}, {"epoch": 7, "train_loss": 0.6382534712079971, "validation_loss": 0.6606022715568542, "validation_acc": 0.7023809523809523}, {"epoch": 8, "train_loss": 0.6337619509015765, "validation_loss": 0.654855489730835, "validation_acc": 0.6904761904761905}, {"epoch": 9, "train_loss": 0.642241915067037, "validation_loss": 0.6504404544830322, "validation_acc": 0.7023809523809523}, {"epoch": 10, "train_loss": 0.6352224917638869, "validation_loss": 0.6442890763282776, "validation_acc": 0.6904761904761905}, {"epoch": 11, "train_loss": 0.6348745926978097, "validation_loss": 0.6393371224403381, "validation_acc": 0.7023809523809523}, {"epoch": 12, "train_loss": 0.6346923264246138, "validation_loss": 0.6370998620986938, "validation_acc": 0.7023809523809523}, {"epoch": 13, "train_loss": 0.6206668643724351, "validation_loss": 0.6350913047790527, "validation_acc": 0.7142857142857143}, {"epoch": 14, "train_loss": 0.6157669727764432, "validation_loss": 0.631761908531189, "validation_acc": 0.7142857142857143}, {"epoch": 15, "train_loss": 0.6143763661384583, "validation_loss": 0.6293486952781677, "validation_acc": 0.7142857142857143}, {"epoch": 16, "train_loss": 0.6003685754442972, "validation_loss": 0.6271439790725708, "validation_acc": 0.7142857142857143}, {"epoch": 17, "train_loss": 0.6152586057072594, "validation_loss": 0.6247095465660095, "validation_acc": 0.7023809523809523}, {"epoch": 18, "train_loss": 0.6051036762812781, "validation_loss": 0.6231667399406433, "validation_acc": 0.7023809523809523}, {"epoch": 19, "train_loss": 0.5990030160025944, "validation_loss": 0.621695339679718, "validation_acc": 0.7023809523809523}, {"epoch": 20, "train_loss": 0.5817762367309086, "validation_loss": 0.6201182007789612, "validation_acc": 0.7023809523809523}, {"epoch": 21, "train_loss": 0.5863544061070397, "validation_loss": 0.6196227073669434, "validation_acc": 0.7023809523809523}, {"epoch": 22, "train_loss": 0.595752341406686, "validation_loss": 0.6176612377166748, "validation_acc": 0.7023809523809523}, {"epoch": 23, "train_loss": 0.5775233071947855, "validation_loss": 0.6170660257339478, "validation_acc": 0.7023809523809523}, {"epoch": 24, "train_loss": 0.5893066345699249, "validation_loss": 0.61736661195755, "validation_acc": 0.6904761904761905}, {"epoch": 25, "train_loss": 0.5891751968671405, "validation_loss": 0.617760181427002, "validation_acc": 0.7142857142857143}, {"epoch": 26, "train_loss": 0.5950781977365888, "validation_loss": 0.6216898560523987, "validation_acc": 0.6904761904761905}, {"epoch": 27, "train_loss": 0.6065908802880181, "validation_loss": 0.6270062923431396, "validation_acc": 0.6904761904761905}, {"epoch": 28, "train_loss": 0.5651304173091102, "validation_loss": 0.6292357444763184, "validation_acc": 0.6666666666666666}, {"epoch": 29, "train_loss": 0.5413991723741803, "validation_loss": 0.6261631846427917, "validation_acc": 0.6547619047619048}], "test_predictions": [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0], "test_labels": [1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0], "test_acc": 0.5476190476190477, "confusion_matrix": [[28, 14], [24, 18]], "per_class": {"fists": {"precision": 0.5384615384615384, "recall": 0.6666666666666666, "f1-score": 0.5957446808510638, "support": 42.0}, "feet": {"precision": 0.5625, "recall": 0.42857142857142855, "f1-score": 0.4864864864864865, "support": 42.0}, "accuracy": 0.5476190476190477, "macro avg": {"precision": 0.5504807692307692, "recall": 0.5476190476190476, "f1-score": 0.5411155836687751, "support": 84.0}, "weighted avg": {"precision": 0.5504807692307692, "recall": 0.5476190476190477, "f1-score": 0.5411155836687752, "support": 84.0}}, "per_subject_accuracy": {"9": 0.4523809523809524, "10": 0.6428571428571429}}

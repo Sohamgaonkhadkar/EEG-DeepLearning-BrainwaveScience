@@ -1,0 +1,24 @@
+Command: C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\Scripts\python.exe erd.py --band mu
+Working directory: C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\eeg_dl_exam_3hr\part1_diagnose
+Traceback (most recent call last):
+  File "C:\Users\Soham\anaconda3\envs\myenv\lib\inspect.py", line 1277, in getfullargspec
+    sig = _signature_from_callable(func,
+  File "C:\Users\Soham\anaconda3\envs\myenv\lib\inspect.py", line 2565, in _signature_from_callable
+    raise ValueError('callable {!r} is not supported by signature'.format(obj))
+ValueError: callable <ufunc 'square'> is not supported by signature
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\eeg_dl_exam_3hr\part1_diagnose\erd.py", line 82, in <module>
+    main()
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\eeg_dl_exam_3hr\part1_diagnose\erd.py", line 54, in main
+    ep = band_power_epochs(raw, events, BANDS[args.band])
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\eeg_dl_exam_3hr\part1_diagnose\erd.py", line 29, in band_power_epochs
+    return epochs.apply_function(np.square)   # envelope -> power
+  File "<decorator-gen-225>", line 12, in apply_function
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\lib\site-packages\mne\epochs.py", line 1996, in apply_function
+    args = getfullargspec(fun).args + getfullargspec(fun).kwonlyargs
+  File "C:\Users\Soham\anaconda3\envs\myenv\lib\inspect.py", line 1287, in getfullargspec
+    raise TypeError('unsupported callable') from ex
+TypeError: unsupported callable

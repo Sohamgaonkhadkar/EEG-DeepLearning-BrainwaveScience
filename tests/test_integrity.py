@@ -63,6 +63,18 @@ class IntegrityTests(unittest.TestCase):
         values,times=erd.erd_percent(Epochs(),"hands")
         np.testing.assert_allclose(values[0,:3],0)
         np.testing.assert_allclose(values[0,3:],-50)
+        # Exercise MNE's real continuous-filter/Hilbert/epoch API as well.
+        import mne
+        t=np.arange(3200)/160
+        raw=mne.io.RawArray(np.tile(1e-6*np.sin(2*np.pi*10*t),(3,1)),
+                            mne.create_info(["C3","Cz","C4"],160,"eeg"),verbose="ERROR")
+        power=erd.band_power_epochs(raw,np.array([[480,0,1],[1920,0,2]]),(8,13))
+        actual=power.get_data(copy=True)
+        self.assertEqual(actual.shape,(2,3,1121))
+        self.assertTrue(np.isfinite(actual).all())
+        self.assertGreaterEqual(actual.min(),0)
+        self.assertAlmostEqual(float(actual.mean())/1e-12,1.0,delta=0.03)
+
 
     def test_held_out_values_cannot_change_fitted_scaling(self):
         tr=np.arange(48,dtype="float32").reshape(3,2,8)

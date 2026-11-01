@@ -1,0 +1,35 @@
+Command: C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\Scripts\python.exe train.py --channels all --seed 0
+Working directory: C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\eeg_dl_exam_3hr\part1_diagnose
+data: (420, 64, 641), subjects=10, class balance=[210 210]
+EEGNet: 2898 params
+epoch   0  loss 0.786  val 0.512
+epoch   1  loss 0.673  val 0.607
+epoch   2  loss 0.688  val 0.583
+epoch   3  loss 0.673  val 0.643
+epoch   4  loss 0.644  val 0.595
+epoch   5  loss 0.652  val 0.679
+epoch   6  loss 0.635  val 0.667
+epoch   7  loss 0.629  val 0.690
+epoch   8  loss 0.707  val 0.702
+epoch   9  loss 0.606  val 0.702
+epoch  10  loss 0.606  val 0.702
+epoch  11  loss 0.670  val 0.702
+epoch  12  loss 0.550  val 0.679
+epoch  13  loss 0.585  val 0.655
+epoch  14  loss 0.625  val 0.655
+epoch  15  loss 0.593  val 0.667
+epoch  16  loss 0.566  val 0.667
+epoch  17  loss 0.554  val 0.679
+epoch  18  loss 0.550  val 0.667
+epoch  19  loss 0.499  val 0.655
+epoch  20  loss 0.444  val 0.643
+epoch  21  loss 0.558  val 0.667
+epoch  22  loss 0.576  val 0.679
+epoch  23  loss 0.561  val 0.679
+epoch  24  loss 0.572  val 0.702
+epoch  25  loss 0.474  val 0.643
+epoch  26  loss 0.467  val 0.619
+epoch  27  loss 0.444  val 0.631
+epoch  28  loss 0.402  val 0.619
+epoch  29  loss 0.416  val 0.631
+{"channels": "all", "seed": 0, "best_epoch": 8, "n_test": 84, "protocol": "subject_disjoint_validation", "epochs": 30, "lr": 0.001, "batch_size": 64, "n_params": 2898, "train_subjects": [1, 2, 3, 4, 5, 6], "validation_subjects": [7, 8], "test_subjects": [9, 10], "n_train": 252, "n_validation": 84, "best_validation_acc": 0.7023809523809523, "selected_channels": ["FC5", "FC3", "FC1", "FCz", "FC2", "FC4", "FC6", "C5", "C3", "C1", "Cz", "C2", "C4", "C6", "CP5", "CP3", "CP1", "CPz", "CP2", "CP4", "CP6", "Fp1", "Fpz", "Fp2", "AF7", "AF3", "AFz", "AF4", "AF8", "F7", "F5", "F3", "F1", "Fz", "F2", "F4", "F6", "F8", "FT7", "FT8", "T7", "T8", "T9", "T10", "TP7", "TP8", "P7", "P5", "P3", "P1", "Pz", "P2", "P4", "P6", "P8", "PO7", "PO3", "POz", "PO4", "PO8", "O1", "Oz", "O2", "Iz"], "history": [{"epoch": 0, "train_loss": 0.7454234768473913, "validation_loss": 0.6926389932632446, "validation_acc": 0.5119047619047619}, {"epoch": 1, "train_loss": 0.7108312466787914, "validation_loss": 0.6888914704322815, "validation_acc": 0.6071428571428571}, {"epoch": 2, "train_loss": 0.6789257422326103, "validation_loss": 0.6835761070251465, "validation_acc": 0.5833333333333334}, {"epoch": 3, "train_loss": 0.6763998601171706, "validation_loss": 0.6768893599510193, "validation_acc": 0.6428571428571429}, {"epoch": 4, "train_loss": 0.656371135560293, "validation_loss": 0.669540286064148, "validation_acc": 0.5952380952380952}, {"epoch": 5, "train_loss": 0.6565122396226913, "validation_loss": 0.6625531911849976, "validation_acc": 0.6785714285714286}, {"epoch": 6, "train_loss": 0.6360755856074984, "validation_loss": 0.6558943390846252, "validation_acc": 0.6666666666666666}, {"epoch": 7, "train_loss": 0.6508029510104467, "validation_loss": 0.6507808566093445, "validation_acc": 0.6904761904761905}, {"epoch": 8, "train_loss": 0.6376260093280247, "validation_loss": 0.6466301083564758, "validation_acc": 0.7023809523809523}, {"epoch": 9, "train_loss": 0.6297958833830697, "validation_loss": 0.6440390348434448, "validation_acc": 0.7023809523809523}, {"epoch": 10, "train_loss": 0.6014798444414896, "validation_loss": 0.639507532119751, "validation_acc": 0.7023809523809523}, {"epoch": 11, "train_loss": 0.6229110814276195, "validation_loss": 0.6397725343704224, "validation_acc": 0.7023809523809523}, {"epoch": 12, "train_loss": 0.5915610601031591, "validation_loss": 0.6380765438079834, "validation_acc": 0.6785714285714286}, {"epoch": 13, "train_loss": 0.5752746538510398, "validation_loss": 0.6369476914405823, "validation_acc": 0.6547619047619048}, {"epoch": 14, "train_loss": 0.5722103014824882, "validation_loss": 0.6298468708992004, "validation_acc": 0.6547619047619048}, {"epoch": 15, "train_loss": 0.5842627722119528, "validation_loss": 0.6281101703643799, "validation_acc": 0.6666666666666666}, {"epoch": 16, "train_loss": 0.5375737434341794, "validation_loss": 0.6260056495666504, "validation_acc": 0.6666666666666666}, {"epoch": 17, "train_loss": 0.5557338387247116, "validation_loss": 0.6257426142692566, "validation_acc": 0.6785714285714286}, {"epoch": 18, "train_loss": 0.5488388178840516, "validation_loss": 0.6227061152458191, "validation_acc": 0.6666666666666666}, {"epoch": 19, "train_loss": 0.532965258000389, "validation_loss": 0.6204883456230164, "validation_acc": 0.6547619047619048}, {"epoch": 20, "train_loss": 0.503780731606105, "validation_loss": 0.6209409236907959, "validation_acc": 0.6428571428571429}, {"epoch": 21, "train_loss": 0.5337205945499359, "validation_loss": 0.6247535943984985, "validation_acc": 0.6666666666666666}, {"epoch": 22, "train_loss": 0.5027674105432298, "validation_loss": 0.6240969896316528, "validation_acc": 0.6785714285714286}, {"epoch": 23, "train_loss": 0.5059892686586531, "validation_loss": 0.618163526058197, "validation_acc": 0.6785714285714286}, {"epoch": 24, "train_loss": 0.5025895114928957, "validation_loss": 0.6139469742774963, "validation_acc": 0.7023809523809523}, {"epoch": 25, "train_loss": 0.45556744270854527, "validation_loss": 0.6205672025680542, "validation_acc": 0.6428571428571429}, {"epoch": 26, "train_loss": 0.47451593573131257, "validation_loss": 0.6300750970840454, "validation_acc": 0.6190476190476191}, {"epoch": 27, "train_loss": 0.4483493637470972, "validation_loss": 0.639078676700592, "validation_acc": 0.6309523809523809}, {"epoch": 28, "train_loss": 0.45841483180485076, "validation_loss": 0.6431185603141785, "validation_acc": 0.6190476190476191}, {"epoch": 29, "train_loss": 0.41872963072761654, "validation_loss": 0.6461224555969238, "validation_acc": 0.6309523809523809}], "test_predictions": [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1], "test_labels": [1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0], "test_acc": 0.5238095238095238, "confusion_matrix": [[31, 11], [29, 13]], "per_class": {"fists": {"precision": 0.5166666666666667, "recall": 0.7380952380952381, "f1-score": 0.6078431372549019, "support": 42.0}, "feet": {"precision": 0.5416666666666666, "recall": 0.30952380952380953, "f1-score": 0.3939393939393939, "support": 42.0}, "accuracy": 0.5238095238095238, "macro avg": {"precision": 0.5291666666666667, "recall": 0.5238095238095238, "f1-score": 0.5008912655971479, "support": 84.0}, "weighted avg": {"precision": 0.5291666666666667, "recall": 0.5238095238095238, "f1-score": 0.5008912655971479, "support": 84.0}}, "per_subject_accuracy": {"9": 0.5, "10": 0.5476190476190477}}

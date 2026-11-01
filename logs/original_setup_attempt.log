@@ -1,0 +1,34 @@
+Command: C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\Scripts\python.exe train.py --channels all --seed 0
+Working directory: C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\original_starter\eeg_dl_exam_3hr\part1_diagnose
+Do you want to set the path:
+    C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\mne_data
+as the default EEGBCI dataset path in the mne-python config [y]/n? Traceback (most recent call last):
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\lib\site-packages\mne\utils\check.py", line 1231, in _safe_input
+    return input(msg)
+EOFError: EOF when reading a line
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\original_starter\eeg_dl_exam_3hr\part1_diagnose\train.py", line 100, in <module>
+    main()
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\original_starter\eeg_dl_exam_3hr\part1_diagnose\train.py", line 48, in main
+    X, y, groups, ch_names = build_dataset(args.subjects)
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\original_starter\eeg_dl_exam_3hr\part1_diagnose\data.py", line 58, in build_dataset
+    X, y, ch_names = epoch_subject(s)
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\original_starter\eeg_dl_exam_3hr\part1_diagnose\data.py", line 44, in epoch_subject
+    raw = load_raw(subject)
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\original_starter\eeg_dl_exam_3hr\part1_diagnose\data.py", line 26, in load_raw
+    files = eegbci.load_data(subject, runs)
+  File "<decorator-gen-330>", line 12, in load_data
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\lib\site-packages\mne\datasets\eegbci\eegbci.py", line 225, in load_data
+    _do_path_update(path, update_path, config_key, name)
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\lib\site-packages\mne\datasets\utils.py", line 165, in _do_path_update
+    answer = _safe_input(msg, alt="pass update_path=True")
+  File "C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\lib\site-packages\mne\utils\check.py", line 1235, in _safe_input
+    raise RuntimeError(
+RuntimeError: Could not use input() to get a response to:
+Do you want to set the path:
+    C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\mne_data
+as the default EEGBCI dataset path in the mne-python config [y]/n? 
+You can pass update_path=True to avoid this error.
