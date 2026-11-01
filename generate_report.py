@@ -22,6 +22,8 @@ def main():
  stats={m:np.array([selected[m][s]['test_acc'] for s in [0,1,2]]) for m in models}
  figures=json.loads((ROOT/'figure_interpretations.json').read_text())
  audits=json.loads((ROOT/'part1_diagnose/data_audit.json').read_text())
+ flagged=sum(a['epochs_peak_over_500uv'] for a in audits)
+ quality_table='\n'.join(f"| {a['subject']} | {a['shape'][0]} | {a['class_counts'][0]}/{a['class_counts'][1]} | {a['epochs_peak_over_500uv']} |" for a in audits)
  rows=[]
  for m in models:
   a=stats[m]
@@ -101,6 +103,14 @@ YourModel's mean accuracy is {pct(stats['YourModel'].mean())}, compared with EEG
 {figures['embedding']}
 
 ### Data Quality and Leakage Audit
+
+The untouched original run deliberately retains its documented leaks for the required diagnostic reproduction; the controls below apply to the corrected experiments.
+
+Part 1 retains 42 of 45 annotated task events for each subject: two epochs meet a `BAD boundary` and one is `TOO_SHORT` because the full -2 to 5 s epoch extends beyond valid recording data. Thus there are 420 balanced trials, including 84 test trials. A fixed peak-over-500-µV diagnostic flags {flagged}/420 epochs (including all 42 from subject 3); this is a residual-artifact limitation, not a reason to change thresholds using test outcomes. The high-amplitude epochs are retained to preserve the specified controlled comparison and cue-confound investigation; their scalp origin cannot be inferred from a peak alone.
+
+| Subject | Retained trials | Fists/feet | Epoch peak >500 µV |
+|---|---:|---:|---:|
+{quality_table}
 
 - Every subject's actual sampling rate, 64 unique standardized electrode names and identical channel order are checked; labels are mapped explicitly from T1/T2. Subject-level shapes/class counts and units (Part 1 ÂµV, Part 2 V before scaling) are saved in `data_audit.json`.
 - Invalid/non-finite samples, flat channels and exact duplicated epochs raise errors. Audits record absolute-amplitude and epoch-peak percentiles and flags above 500 ÂµV; these are transparent diagnostics, not a test-adapted rejection rule. No automatic amplitude/ICA rejection or fitted artifact cleaning is applied.

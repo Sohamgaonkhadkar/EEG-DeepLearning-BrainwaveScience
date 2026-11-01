@@ -3,7 +3,9 @@ import concurrent.futures
 import os
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent
-os.environ['MNE_DATASETS_EEGBCI_PATH']=str(ROOT.parent/'mne_data')
+cache=Path(os.environ.get('MNE_DATASETS_EEGBCI_PATH',ROOT.parent/'mne_data'))
+cache.mkdir(parents=True,exist_ok=True)
+os.environ['MNE_DATASETS_EEGBCI_PATH']=str(cache)
 from mne.datasets import eegbci
 
 def fetch(s):

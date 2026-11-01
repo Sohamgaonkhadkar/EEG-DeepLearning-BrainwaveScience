@@ -97,14 +97,19 @@ def save_figure(model, Xte, yte, device, path="figure.png"):
     n = len(emb)
     emb2 = TSNE(n_components=2, perplexity=min(30, max(5, n // 4)),
                 init="pca", random_state=0).fit_transform(emb)
+    from pathlib import Path
+    audit = json.loads(Path("data_audit.json").read_text())
+    subject_ids = np.array([9]*audit[8]["shape"][0]+[10]*audit[9]["shape"][0])
     with open("embedding_coordinates.json", "w") as f:
         json.dump(dict(method="t-SNE", random_state=0, labels=yte.tolist(),
-                       coordinates=emb2.tolist(), n_samples=n,
-                       checkpoint="validation-selected first requested seed"), f)
-    plt.figure(figsize=(5, 4))
-    for c, name in [(0, "fists"), (1, "feet")]:
-        m = yte == c
-        plt.scatter(emb2[m, 0], emb2[m, 1], s=18, alpha=0.7, label=name)
+                       subject_ids=subject_ids.tolist(), coordinates=emb2.tolist(),
+                       n_samples=n, checkpoint="validation-selected first requested seed"), f)
+    plt.figure(figsize=(6, 4.5))
+    for c, name, color in [(0, "fists", "tab:blue"), (1, "feet", "tab:orange")]:
+        for subject, marker in [(9,"o"),(10,"^")]:
+            m = (yte == c) & (subject_ids == subject)
+            plt.scatter(emb2[m, 0], emb2[m, 1], s=24, alpha=0.75,
+                        c=color, marker=marker, label=f"{name}, S{subject:02d}")
     plt.legend(); plt.title("Test-subject embeddings (your model)")
     plt.tight_layout(); plt.savefig(path, dpi=130)
     print(f"  saved {path}")

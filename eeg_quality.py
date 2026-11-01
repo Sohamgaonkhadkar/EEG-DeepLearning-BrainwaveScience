@@ -31,6 +31,7 @@ def validate_subject(X, y, channels, subject, sfreq, runs, units, times):
                 class_counts=np.bincount(y, minlength=2).tolist(),
                 start_end_seconds=[float(times[0]), float(times[-1])],
                 absolute_uv_percentiles=np.percentile(np.abs(uv), [50,95,99,100]).tolist(),
+                channel_uv_p99=np.percentile(np.abs(uv),99,axis=(0,2)).tolist(),
                 epoch_peak_uv_percentiles=np.percentile(peak,[50,95,100]).tolist(),
                 epochs_peak_over_500uv=int((peak > 500).sum()),
                 finite=True, duplicate_epochs=0, epoch_hashes=hashes)
