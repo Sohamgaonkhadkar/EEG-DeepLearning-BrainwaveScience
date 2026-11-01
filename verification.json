@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "comparison_complete": true,
+  "missing_runs": [],
+  "checks": [
+    "All six separate scientific bug-fix commits remain in local history",
+    "All 60 source EDF SHA256 hashes match MNE registry",
+    "Actual result accuracies/confusion matrices and validation checkpoint histories recompute exactly",
+    "Completed seed records verified; missing runs: []",
+    "Historical five runs unchanged; new checkpoints and training metrics present",
+    "Optional refits not executed; excluded from mandatory completion",
+    "All required figures and supplementary beta ERD are valid PNGs",
+    "Part 1 EEGNet architecture and Part 2 baseline model source are unchanged",
+    "Original starter remains byte-identical to supplied ZIP",
+    "No Git remote configured; raw datasets and checkpoints not tracked"
+  ]
+}

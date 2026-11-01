@@ -1,1 +1,1 @@
-Historical pause ended by explicit final execution directive. See EXPERIMENT_STATUS.json. No automatic refit watcher is running.
+Historical pause ended by the final execution directive. See EXPERIMENT_STATUS.json for final completion status. No optional experiment watcher is running.

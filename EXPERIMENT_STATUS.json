@@ -1,5 +1,5 @@
 {
-  "status": "YourModel_complete_vanilla_seed2_running",
+  "status": "complete",
   "stopped_process_ids": [
     34628,
     35284,
@@ -8,8 +8,8 @@
     27156,
     17192
   ],
-  "completed_part2_runs": 8,
-  "remaining_required_part2_runs": 1,
+  "completed_part2_runs": 9,
+  "remaining_required_part2_runs": 0,
   "interrupted": {
     "model": "VanillaEEGTransformer",
     "seed": 2,
@@ -176,7 +176,8 @@
     ],
     "test_evaluated": false,
     "persistent_checkpoint_available": false,
-    "reason": "Explicit user-requested stop for independent technical audit"
+    "reason": "Explicit user-requested stop for independent technical audit",
+    "replacement_completed": true
   },
   "yourmodel_completed_training_runs": 0,
   "optional_refits_started": 0,
@@ -184,7 +185,9 @@
   "training_accuracy_recorded": false,
   "checkpoint_files_saved_by_completed_training": false,
   "authorization": "Final execution directive: original YourModel seeds 0/1/2, then missing vanilla seed 2",
-  "optional_refits": "skipped",
-  "compact_model": "skipped",
-  "scaling_experiments": "skipped"
+  "optional_refits": "not_run",
+  "compact_model": "not_run",
+  "scaling_experiments": "not_run",
+  "missing_runs": [],
+  "no_github_push": true
 }

@@ -5,13 +5,13 @@
     "mean_training_seconds": 93.95683603332145
   },
   "VanillaEEGTransformer": {
-    "final_training_loss_mean": 0.09502279352810647,
-    "final_validation_loss_mean": 1.6485463672214085,
-    "mean_training_seconds": 1069.1167939000006
+    "final_training_loss_mean": 0.08068262592509941,
+    "final_validation_loss_mean": 2.0560363910816335,
+    "mean_training_seconds": 1045.105430800002
   },
   "YourModel": {
-    "final_training_loss_mean": 0.1181964567689984,
-    "final_validation_loss_mean": 1.9325031492445204,
-    "mean_training_seconds": 366.3401072999841
+    "final_training_loss_mean": 0.13285289342388695,
+    "final_validation_loss_mean": 1.8850878256338615,
+    "mean_training_seconds": 266.5089762999948
   }
 }

@@ -148,5 +148,55 @@
       21,
       24
     ]
+  },
+  {
+    "model": "VanillaEEGTransformer",
+    "seed": 2,
+    "subject": 7,
+    "accuracy": 0.5111111111111111,
+    "balanced_accuracy": 0.5,
+    "class_recall": [
+      0.0,
+      1.0
+    ],
+    "confusion_matrix": [
+      [
+        0,
+        22
+      ],
+      [
+        0,
+        23
+      ]
+    ],
+    "prediction_counts": [
+      0,
+      45
+    ]
+  },
+  {
+    "model": "VanillaEEGTransformer",
+    "seed": 2,
+    "subject": 8,
+    "accuracy": 0.4888888888888889,
+    "balanced_accuracy": 0.5,
+    "class_recall": [
+      0.0,
+      1.0
+    ],
+    "confusion_matrix": [
+      [
+        0,
+        23
+      ],
+      [
+        0,
+        22
+      ]
+    ],
+    "prediction_counts": [
+      0,
+      45
+    ]
   }
 ]

@@ -66,12 +66,12 @@ Uniform random guessing is 50%. A majority-class baseline fitted on optimization
 | Model | Seed 0 | Seed 1 | Seed 2 | Mean | Population SD | Worst | Best |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | EEGNet | 44.44% | 51.11% | 48.89% | 48.15% | 2.77 pp | 44.44% | 51.11% |
-| VanillaEEGTransformer | 43.33% | 46.67% | Incomplete | 45.00% | 1.67 pp | 43.33% | 46.67% |
+| VanillaEEGTransformer | 43.33% | 46.67% | 54.44% | 48.15% | 4.66 pp | 43.33% | 54.44% |
 | YourModel | 46.67% | 45.56% | 50.00% | 47.41% | 1.89 pp | 45.56% | 50.00% |
 
 ### Interpretation
 
-YourModel's mean accuracy is 47.41%, compared with EEGNet 48.15% and vanilla 45.00%. Completed seed counts are EEGNet 3, vanilla 2, YourModel 3; missing runs are excluded from summaries. Descriptive comparisons do not select a model. The all-seed scores above provide the comparison; these explicitly show whether the ordering repeats across the three seeds. The measured standard deviations describe seed sensitivity on this fixed two-person test population, not uncertainty across new subjects or proof that patching improves optimization. EEGNet's temporal/spatial convolution and pooling constrain the hypothesis space; vanilla must learn useful structure from few people, while a large patch projection can itself overfit. More held-out subject folds, matched parameter budgets, patch-size ablation selected on validation data, loss-curve analysis and independent cue controls would strengthen any conclusion.
+YourModel's mean accuracy is 47.41%, compared with EEGNet 48.15% and vanilla 48.15%. Completed seed counts are EEGNet 3, vanilla 3, YourModel 3; missing runs are excluded from summaries. Descriptive comparisons do not select a model. The all-seed scores above provide the comparison; these explicitly show whether the ordering repeats across the three seeds. The measured standard deviations describe seed sensitivity on this fixed two-person test population, not uncertainty across new subjects or proof that patching improves optimization. EEGNet's temporal/spatial convolution and pooling constrain the hypothesis space; vanilla must learn useful structure from few people, while a large patch projection can itself overfit. More held-out subject folds, matched parameter budgets, patch-size ablation selected on validation data, loss-curve analysis and independent cue controls would strengthen any conclusion.
 
 ### Figure
 
@@ -127,6 +127,7 @@ Epochs below are one-based. Training accuracy is measured in evaluation mode at 
 | EEGNet | 2 | 1 | Unavailable | 64.44% | 0.6899 | Unavailable | Unavailable | 51.11% | 46.67% |
 | VanillaEEGTransformer | 0 | 26 | Unavailable | 60.00% | 0.7097 | Unavailable | Unavailable | 42.22% | 44.44% |
 | VanillaEEGTransformer | 1 | 31 | Unavailable | 62.22% | 1.6209 | Unavailable | Unavailable | 46.67% | 46.67% |
+| VanillaEEGTransformer | 2 | 1 | 50.74% | 50.00% | 0.6935 | 51.11% | 48.89% | 62.22% | 46.67% |
 | YourModel | 0 | 4 | 75.93% | 63.33% | 0.6510 | 64.44% | 62.22% | 42.22% | 51.11% |
 | YourModel | 1 | 5 | 72.59% | 63.33% | 0.7052 | 62.22% | 64.44% | 40.00% | 51.11% |
 | YourModel | 2 | 31 | 100.00% | 67.78% | 1.3139 | 66.67% | 68.89% | 51.11% | 48.89% |
@@ -152,6 +153,12 @@ Part 1 has 45 task annotations per subject but retains 42: its full -2 to 5 seco
 
 Vanilla seeds 0/1 end with online training losses 0.090/0.100 versus validation losses 1.533/1.764: a strong overfitting signal. Validation-to-test differences suggest subject-dependent generalization, but only two people in each cohort cannot identify a population-level cause. A suboptimal learning rate is unverified; no baseline hyperparameters were changed. Historical EEGNet validation predictions were not saved, so we cannot determine retrospectively whether S7 or S8 dominated its validation score. Newly saved YourModel validation predictions permit that descriptive check without retraining. No test-based preprocessing or architecture selection was performed. Optional compact models, robust scaling and refits were skipped under the submission deadline.
 
+Across the three YourModel runs, S7/S8 validation accuracy differs by only 2.22 percentage points within each seed, and the easier subject changes. Neither validation subject consistently dominates. Saved predictions show mild class preferences, not single-class collapse. All three YourModel runs develop substantial late train/validation loss gaps. The patch model does not exceed EEGNet in mean test accuracy; the proposed accuracy benefit is not established. Reduced attention-score count is demonstrated structurally, while its causal contribution to generalization is not isolated by this unequal-parameter comparison.
+
+### Defense questions
+
+Scaled dot-product attention is softmax(QKᵀ/√dₖ)V. Dividing by √dₖ controls the variance of dot products as key dimension grows, helping avoid saturated softmax. With 80 training subjects, greater subject diversity could improve learned invariance and make vanilla attention more competitive; this is a hypothesis, not a result. Patching would still reduce the attention matrix size, but any generalization advantage would need a new subject-held-out comparison with matched capacity and untouched evaluation subjects. Attention weights alone do not establish causal physiological relevance.
+
 ### Saved validation-subject predictions
 
 Balanced accuracy is the mean of fists and feet recall. Prediction counts use fists/feet order; these are descriptive development diagnostics only.
@@ -164,5 +171,7 @@ Balanced accuracy is the mean of fists and feet recall. Prediction counts use fi
 | YourModel | 1 | 8 | 64.23% | 73.91% | 54.55% | 27/18 |
 | YourModel | 2 | 7 | 66.50% | 59.09% | 73.91% | 19/26 |
 | YourModel | 2 | 8 | 68.97% | 65.22% | 72.73% | 21/24 |
+| VanillaEEGTransformer | 2 | 7 | 50.00% | 0.00% | 100.00% | 0/45 |
+| VanillaEEGTransformer | 2 | 8 | 50.00% | 0.00% | 100.00% | 0/45 |
 
 The brief development-only amplitude check found a median channel standard-deviation / IQR-derived scale ratio of 1.32 (maximum 1.87). Subjects 1 and 3 contribute disproportionately to training variance (about 30% and 35% averaged across channels). This shows amplitude heterogeneity, not a confirmed artifact or scaling defect. No robust-scaling experiment, rejection or normalization change was performed.
