@@ -20,6 +20,10 @@ def main():
  models=['EEGNet','VanillaEEGTransformer','YourModel']
  selected={m:{s:next(r for r in reversed(p2) if r['model']==m and r['seed']==s and r['epochs']==40) for s in [0,1,2]} for m in models}
  stats={m:np.array([selected[m][s]['test_acc'] for s in [0,1,2]]) for m in models}
+ audit2=json.loads((ROOT/'part2_transformer/data_audit.json').read_text())
+ training_counts=np.sum([a['class_counts'] for a in audit2[:6]],axis=0)
+ majority_class=int(np.argmax(training_counts))
+ majority_accuracy=float(np.mean(np.array(selected['EEGNet'][0]['test_labels'])==majority_class))
  figures=json.loads((ROOT/'figure_interpretations.json').read_text(encoding='utf-8'))
  audits=json.loads((ROOT/'part1_diagnose/data_audit.json').read_text())
  flagged=sum(a['epochs_peak_over_500uv'] for a in audits)
@@ -90,13 +94,15 @@ Imagery runs 6/10/14, 64 channels, 160 Hz, continuous 7–30 Hz filtering and in
 
 ### Results
 
+Uniform random guessing is 50%. A majority-class baseline fitted on optimization labels alone chooses {['fists','feet'][majority_class]} (training counts {training_counts.tolist()}) and scores {pct(majority_accuracy)} on the full test set; test labels do not choose its class.
+
 | Model | Seed 0 | Seed 1 | Seed 2 | Mean | Population SD | Worst | Best |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 {chr(10).join(rows)}
 
 ### Interpretation
 
-YourModel's mean accuracy is {pct(stats['YourModel'].mean())}, compared with EEGNet {pct(stats['EEGNet'].mean())} and vanilla {pct(stats['VanillaEEGTransformer'].mean())}. The paired seed differences relative to EEGNet are {', '.join(f'{100*x:+.2f}' for x in stats['YourModel']-stats['EEGNet'])} percentage points, and relative to vanilla are {', '.join(f'{100*x:+.2f}' for x in stats['YourModel']-stats['VanillaEEGTransformer'])}; these explicitly show whether the ordering repeats across the three seeds. The measured standard deviations describe seed sensitivity on this fixed two-person test population, not uncertainty across new subjects or proof that patching improves optimization. EEGNet's temporal/spatial convolution and pooling constrain the hypothesis space; vanilla must learn useful structure from few people, while a large patch projection can itself overfit. More held-out subject folds, matched parameter budgets, patch-size ablation selected on validation data, loss-curve analysis and independent cue controls would strengthen any conclusion.
+YourModel's mean accuracy is {pct(stats['YourModel'].mean())}, compared with EEGNet {pct(stats['EEGNet'].mean())} and vanilla {pct(stats['VanillaEEGTransformer'].mean())}. It exceeds EEGNet in {int(np.sum(stats['YourModel'] > stats['EEGNet']))}/3 seeds and vanilla in {int(np.sum(stats['YourModel'] > stats['VanillaEEGTransformer']))}/3 seeds. The paired seed differences relative to EEGNet are {', '.join(f'{100*x:+.2f}' for x in stats['YourModel']-stats['EEGNet'])} percentage points, and relative to vanilla are {', '.join(f'{100*x:+.2f}' for x in stats['YourModel']-stats['VanillaEEGTransformer'])}; these explicitly show whether the ordering repeats across the three seeds. The measured standard deviations describe seed sensitivity on this fixed two-person test population, not uncertainty across new subjects or proof that patching improves optimization. EEGNet's temporal/spatial convolution and pooling constrain the hypothesis space; vanilla must learn useful structure from few people, while a large patch projection can itself overfit. More held-out subject folds, matched parameter budgets, patch-size ablation selected on validation data, loss-curve analysis and independent cue controls would strengthen any conclusion.
 
 ### Figure
 
