@@ -1,0 +1,22 @@
+[
+  {
+    "file": "part1_diagnose/results.jsonl",
+    "sha256": "85933ce46aca71ffc8650fea6d23c9537b568d53143330f6277db3d026e3dd12",
+    "bytes": 11217
+  },
+  {
+    "file": "part1_diagnose/original_results.jsonl",
+    "sha256": "973f2e37dd98f0c7f2a7542343b6a05b27ee2329339ccf693b6b1f66fe9cab4e",
+    "bytes": 96
+  },
+  {
+    "file": "part2_transformer/results.jsonl",
+    "sha256": "c3638d8f51e3e31cb5555fc2715dcf1c26c1a336afca642cc199eaea3e82dd8f",
+    "bytes": 33606
+  },
+  {
+    "file": "logs/part2_40epochs_3seeds.log",
+    "sha256": "7dfc8cb23fdfa46a06d26e84f1187ab82591581c0c699ddc4e34e6226e183ce5",
+    "bytes": 47863
+  }
+]

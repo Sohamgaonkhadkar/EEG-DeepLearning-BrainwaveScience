@@ -34,7 +34,8 @@ cd ../part2_transformer && python main.py
 
 Both parts use the PhysioNet EEGBCI dataset (subjects 1–10, 64 channels,
 160 Hz), downloaded and cached automatically by MNE (~80 MB total). CPU is
-enough; each run is 1–2 minutes.
+supported; the measured vanilla runs took about 17–19 minutes before additional
+training-metric evaluation. Runtime depends on architecture and machine.
 
 ## The arc
 
@@ -103,8 +104,9 @@ data augmentation, ICA, adaptive channel selection, or test-fitted transformatio
 are used. Predeclared quality checks report large amplitudes and stop on invalid
 values, flat channels, inconsistent channel order or duplicate epochs.
 
-`results.jsonl` is append-only: rerunning adds new experiments. Use a fresh output
-file via Part 2 `--results path.jsonl` for an additional comparison. The original
+`results.jsonl` is append-only. Part 2 now skips completed model/seed pairs and
+refuses to overwrite an existing selected checkpoint. Reproduce in a fresh copy
+with new results and checkpoint directories. The original
 flawed measurement is kept separately in `part1_diagnose/original_results.jsonl`.
 Transcripts are in `logs/`, quality records in each part's `data_audit.json`, and
 confusion matrices, per-class metrics, per-subject accuracies and loss histories
@@ -120,8 +122,9 @@ raw EDF recordings, virtual environments and checkpoints are excluded.
 ## Separate eight-subject refits
 
 The required development results remain in their original files. The added
-final refit protocol is documented in `TRAINING_STRATEGY.md`; exact durations
-and seeds are frozen in `refit_plan.json`. From this project root, run only
+final refit protocol is documented in `TRAINING_STRATEGY.md`; optional refits were
+not run under the submission deadline. A future `refit_plan.json` must freeze exact
+durations and seeds. From this project root, run only
 after the development comparison has completed:
 
 ```powershell
@@ -137,3 +140,42 @@ all subjects 1-8 for a validation-derived fixed duration, then scores subjects
 9-10 after every refit model has finished. Separate outputs live in `refits/`.
 The existing test cohort has already been scored for the required comparisons;
 these follow-up results do not constitute a newly untouched external test.
+
+## Final execution and saved artifacts
+
+The final directive resumed only original YourModel seeds 0/1/2, followed by a
+time-budget check for restarting vanilla seed 2. The first interrupted vanilla
+attempt is retained in the old log and excluded from completed-run statistics.
+`EXPERIMENT_STATUS.json` and `verification.json` record the actual completion state.
+The original five completed runs and all Part 1 results are preserved.
+
+From `part2_transformer`, model-specific reproduction commands are:
+
+```powershell
+python main.py --models YourModel --epochs 40 --seeds 0 1 2
+python main.py --models VanillaEEGTransformer --epochs 40 --seeds 2
+```
+
+New runs save best-validation weights in `part2_transformer/checkpoints/` and
+individual JSON records in `part2_transformer/run_records/`. Checkpoints are local
+submission artifacts, excluded from Git. Their reload is checked against selected
+in-memory validation predictions. No historical weights are fabricated.
+
+Part 2 has **no epoch baseline correction** (`baseline=None`), consistently with
+the completed baselines. Pre-cue referencing applies to the Part 1 ERD calculation.
+YourModel right-pads 481 samples to 512: 16 patches plus CLS, preserving the last
+sample. The 64-channel order is recorded in `data_audit.json` and checked across
+subjects; convolution uses that order without rearrangement.
+
+After results exist, regenerate the report/plots and check saved measurements:
+
+```powershell
+python generate_report.py
+python plot_training.py
+python verify_submission.py --allow-incomplete
+```
+
+`--allow-incomplete` permits only the explicitly disclosed missing vanilla seed 2;
+the verification output separately records whether the nine-run comparison is
+complete. Without that flag all nine completed runs are required. Optional refits
+are not a prerequisite for mandatory report generation or verification.

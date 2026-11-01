@@ -18,8 +18,8 @@ def main():
  frontal=next(r for r in reversed(p1) if r['channels']=='frontal')
  p2=read_jsonl(ROOT/'part2_transformer/results.jsonl')
  models=['EEGNet','VanillaEEGTransformer','YourModel']
- selected={m:{s:next(r for r in reversed(p2) if r['model']==m and r['seed']==s and r['epochs']==40) for s in [0,1,2]} for m in models}
- stats={m:np.array([selected[m][s]['test_acc'] for s in [0,1,2]]) for m in models}
+ selected={m:{r['seed']:r for r in p2 if r['model']==m and r['epochs']==40} for m in models}
+ stats={m:np.array([selected[m][s]['test_acc'] for s in sorted(selected[m])]) for m in models}
  audit2=json.loads((ROOT/'part2_transformer/data_audit.json').read_text())
  training_counts=np.sum([a['class_counts'] for a in audit2[:6]],axis=0)
  majority_class=int(np.argmax(training_counts))
@@ -31,7 +31,7 @@ def main():
  rows=[]
  for m in models:
   a=stats[m]
-  rows.append('| '+m+' | '+' | '.join(pct(x) for x in a)+f' | {pct(a.mean())} | {100*a.std():.2f} pp | {pct(a.min())} | {pct(a.max())} |')
+  rows.append('| '+m+' | '+' | '.join(pct(selected[m][s]['test_acc']) if s in selected[m] else 'Incomplete' for s in [0,1,2])+f' | {pct(a.mean())} | {100*a.std():.2f} pp | {pct(a.min())} | {pct(a.max())} |')
  pvalue=binomtest(26,45,.5,alternative='greater').pvalue
  text=f'''# EEG × Deep Learning — Assessment Answers
 
@@ -88,9 +88,11 @@ I deliberately validate the starter's existing Conv1d patch-tokenizer bet rather
 
 Vanilla uses 481 timestep tokens plus CLS: **482×482** scores/head/layer (232,324 entries). YourModel uses **17×17** (289 entries), a **803.89×** score-count reduction; there are four heads and three layers in each. This is quadratic-attention cost, not a measured wall-clock speedup: token projection and other operations still cost time. Parameter counts: EEGNet {selected['EEGNet'][0]['n_params']:,}; vanilla {selected['VanillaEEGTransformer'][0]['n_params']:,}; YourModel {selected['YourModel'][0]['n_params']:,}. Patching reduces tokens but increases tokenizer parameters, so it does not automatically reduce overfitting.
 
+EEGNet uses eight temporal kernels of width 80, depthwise full-electrode convolution with multiplier two, then depthwise/separable temporal convolution with 16 features, ELU, batch normalization, pooling factors 4 and 8, dropout 0.5 and a two-class linear head. Vanilla projects each 64-channel timestep into dimension 64, adds CLS and learned positions, applies three post-norm transformer layers (four heads, feedforward width 128, GELU, dropout 0.3), and classifies the normalized CLS embedding. YourModel preserves that transformer stack but replaces timestep projection with the temporal Conv1d tokenizer. All encoder layers have distinct parameter storage despite identical initial cloned layer values; this inherited initialization is unchanged across the two transformer configurations.
+
 ### Experimental Setup
 
-Imagery runs 6/10/14, 64 channels, 160 Hz, continuous 7–30 Hz filtering and inclusive 0–3 s epochs (481 samples), fists=0 / feet=1. Optimization subjects 1–6 ({selected['EEGNet'][0]['n_train']} trials), validation 7–8 ({selected['EEGNet'][0]['n_validation']}), held-out test 9–10 ({selected['EEGNet'][0]['n_test']}); validation comes only from the allowed 1–8 pool. All three models use seeds 0/1/2, 40 epochs, cross entropy, AdamW (lr=0.001, decay=0.001), batch 16, the same channel normalization fitted on 1–6, and earliest maximum validation accuracy for checkpoint selection. CPU execution and exact library versions are in `environment_actual.json`. EEGNet carries the Part 1 kernel/dropout values; the Part 2 filter/window differ from Part 1, so the resulting accuracy is a separate measurement.
+Imagery runs 6/10/14, 64 channels, 160 Hz, continuous 7–30 Hz filtering and inclusive 0–3 s epochs (481 samples), fists=0 / feet=1. Optimization subjects 1–6 ({selected['EEGNet'][0]['n_train']} trials), validation 7–8 ({selected['EEGNet'][0]['n_validation']}), held-out test 9–10 ({selected['EEGNet'][0]['n_test']}); validation comes only from the allowed 1–8 pool. The planned comparison uses seeds 0/1/2 and 40 epochs for each model (completed counts and missing runs are explicit below), cross entropy, AdamW (lr=0.001, decay=0.001), batch 16, the same channel normalization fitted on 1–6, and earliest maximum validation accuracy for checkpoint selection. CPU execution and exact library versions are in `environment_actual.json`. EEGNet carries the Part 1 kernel/dropout values; the Part 2 filter/window differ from Part 1, so the resulting accuracy is a separate measurement.
 
 ### Results
 
@@ -102,7 +104,7 @@ Uniform random guessing is 50%. A majority-class baseline fitted on optimization
 
 ### Interpretation
 
-YourModel's mean accuracy is {pct(stats['YourModel'].mean())}, compared with EEGNet {pct(stats['EEGNet'].mean())} and vanilla {pct(stats['VanillaEEGTransformer'].mean())}. It exceeds EEGNet in {int(np.sum(stats['YourModel'] > stats['EEGNet']))}/3 seeds and vanilla in {int(np.sum(stats['YourModel'] > stats['VanillaEEGTransformer']))}/3 seeds. The paired seed differences relative to EEGNet are {', '.join(f'{100*x:+.2f}' for x in stats['YourModel']-stats['EEGNet'])} percentage points, and relative to vanilla are {', '.join(f'{100*x:+.2f}' for x in stats['YourModel']-stats['VanillaEEGTransformer'])}; these explicitly show whether the ordering repeats across the three seeds. The measured standard deviations describe seed sensitivity on this fixed two-person test population, not uncertainty across new subjects or proof that patching improves optimization. EEGNet's temporal/spatial convolution and pooling constrain the hypothesis space; vanilla must learn useful structure from few people, while a large patch projection can itself overfit. More held-out subject folds, matched parameter budgets, patch-size ablation selected on validation data, loss-curve analysis and independent cue controls would strengthen any conclusion.
+YourModel's mean accuracy is {pct(stats['YourModel'].mean())}, compared with EEGNet {pct(stats['EEGNet'].mean())} and vanilla {pct(stats['VanillaEEGTransformer'].mean())}. Completed seed counts are EEGNet {len(stats['EEGNet'])}, vanilla {len(stats['VanillaEEGTransformer'])}, YourModel {len(stats['YourModel'])}; missing runs are excluded from summaries. Descriptive comparisons do not select a model. The all-seed scores above provide the comparison; these explicitly show whether the ordering repeats across the three seeds. The measured standard deviations describe seed sensitivity on this fixed two-person test population, not uncertainty across new subjects or proof that patching improves optimization. EEGNet's temporal/spatial convolution and pooling constrain the hypothesis space; vanilla must learn useful structure from few people, while a large patch projection can itself overfit. More held-out subject folds, matched parameter budgets, patch-size ablation selected on validation data, loss-curve analysis and independent cue controls would strengthen any conclusion.
 
 ### Figure
 
@@ -130,8 +132,48 @@ Only two test people constrain population-level inference; three seeds do not cr
 
 Dataset/run and cue context: [PhysioNet EEGBCI](https://physionet.org/content/eegmmidb/1.0.0/) and MNE's installed `eegbci.load_data` documentation. The local official PDF is authoritative for assessment deliverables.
 '''
- from report_refits import refit_report
- text += refit_report(ROOT)
+ if (ROOT/'refits/part2_transformer/results.jsonl').exists():
+  from report_refits import refit_report
+  text += refit_report(ROOT)
+ else:
+  text += '\n## Optional eight-subject refits\n\nNot executed; mandatory Stage A results are reported above. Any later refit is exploratory because subjects 9–10 have already been evaluated. Fixed durations must be frozen from validation before refit scoring.\n'
+ text += '\n## Execution safeguards and historical limitations\n\nThe original five completed runs are preserved without retraining. They have no persistent selected weights or evaluation-mode training accuracy; retrospective validation-subject predictions cannot be recovered reliably. Newly completed runs save a distinct checkpoint per model/seed, verify identical validation predictions after reloading, and record evaluation-mode training accuracy and loss. Additional logging preserves RNG state; a regression check verifies identical optimization histories and selected weights. Training loss in all original histories is the online optimization loss, distinct from evaluation-mode loss. Part 2 uses baseline=None, matching all completed baselines; the later directive mentioning pre-cue correction did not change this fixed comparison. The interrupted vanilla seed-2 attempt is incomplete and excluded; its replacement starts from the original seed.\n'
+ text += '\n## Selected-checkpoint metrics\n\nEpochs below are one-based. Training accuracy is measured in evaluation mode at the selected epoch; unavailable historical values are explicitly marked. Full class recalls and confusion matrices are saved in results.jsonl.\n\n| Model | Seed | Epoch | Train accuracy | Validation accuracy | Validation loss | S7 | S8 | S9 | S10 |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n'
+ for m in models:
+  for seed,r in sorted(selected[m].items()):
+   h=r['history'][r['selected_epoch']]
+   subjects=['Unavailable','Unavailable']
+   if 'validation_predictions' in r:
+    pred=np.array(r['validation_predictions']); truth=np.array(r['validation_labels'])
+    subjects=[pct(np.mean(pred[i:i+45]==truth[i:i+45])) for i in [0,45]]
+   text += f"| {m} | {seed} | {r['selected_epoch']+1} | {pct(h['train_acc']) if 'train_acc' in h else 'Unavailable'} | {pct(r['best_validation_acc'])} | {h['validation_loss']:.4f} | {subjects[0]} | {subjects[1]} | {pct(r['per_subject_accuracy']['9'])} | {pct(r['per_subject_accuracy']['10'])} |\n"
+ text += '\n## Trial accounting\n\nPart 1 has 45 task annotations per subject but retains 42: its full -2 to 5 second epoch drops two boundary-crossing events and one too-short event. The classifier then uses 0–4 seconds. Part 2 directly epochs 0–3 seconds and retains all 45 events per subject, without amplitude rejection. This accounts for 420 versus 450 trials; it is not a label-count inconsistency.\n\n| Subject | Part 1 retained (fists/feet) | Part 1 dropped | Part 2 retained (fists/feet) | Part 2 dropped |\n|---|---:|---:|---:|---:|\n'
+ for a,b in zip(audits,audit2):
+  text += f"| {a['subject']} | {a['shape'][0]} ({a['class_counts'][0]}/{a['class_counts'][1]}) | 3 | {b['shape'][0]} ({b['class_counts'][0]}/{b['class_counts'][1]}) | 0 |\n"
+ text += '\n## Generalization evidence\n\nVanilla seeds 0/1 end with online training losses 0.090/0.100 versus validation losses 1.533/1.764: a strong overfitting signal. Validation-to-test differences suggest subject-dependent generalization, but only two people in each cohort cannot identify a population-level cause. A suboptimal learning rate is unverified; no baseline hyperparameters were changed. Historical EEGNet validation predictions were not saved, so we cannot determine retrospectively whether S7 or S8 dominated its validation score. Newly saved YourModel validation predictions permit that descriptive check without retraining. No test-based preprocessing or architecture selection was performed. Optional compact models, robust scaling and refits were skipped under the submission deadline.\n'
+ diagnostics=[]
+ text += '\n### Saved validation-subject predictions\n\nBalanced accuracy is the mean of fists and feet recall. Prediction counts use fists/feet order; these are descriptive development diagnostics only.\n\n| Model | Seed | Subject | Balanced accuracy | Fists recall | Feet recall | Predicted fists/feet |\n|---|---:|---:|---:|---:|---:|---:|\n'
+ for r in p2:
+  if 'validation_predictions' not in r:
+   continue
+  for i,subject in enumerate([7,8]):
+   y=np.array(r['validation_labels'][i*45:(i+1)*45]); pred=np.array(r['validation_predictions'][i*45:(i+1)*45])
+   cm=np.array([[np.sum((y==a)&(pred==b)) for b in [0,1]] for a in [0,1]])
+   recall=cm.diagonal()/cm.sum(axis=1); counts=np.bincount(pred,minlength=2)
+   diagnostics.append(dict(model=r['model'],seed=r['seed'],subject=subject,
+       accuracy=float(np.mean(y==pred)),balanced_accuracy=float(recall.mean()),
+       class_recall=recall.tolist(),confusion_matrix=cm.tolist(),prediction_counts=counts.tolist()))
+   text += f"| {r['model']} | {r['seed']} | {subject} | {pct(recall.mean())} | {pct(recall[0])} | {pct(recall[1])} | {counts[0]}/{counts[1]} |\n"
+ (ROOT/'development_validation_metrics.json').write_text(json.dumps(diagnostics,indent=2))
+ if (ROOT/'development_diagnostics.json').exists():
+  amplitudes=json.loads((ROOT/'development_diagnostics.json').read_text())['amplitudes']
+  ratio=amplitudes['std_to_iqr_scale_percentiles']
+  text += f'\nThe brief development-only amplitude check found a median channel standard-deviation / IQR-derived scale ratio of {ratio[1]:.2f} (maximum {ratio[3]:.2f}). Subjects 1 and 3 contribute disproportionately to training variance (about 30% and 35% averaged across channels). This shows amplitude heterogeneity, not a confirmed artifact or scaling defect. No robust-scaling experiment, rejection or normalization change was performed.\n'
+ summary={m:dict(n_seeds=len(stats[m]),mean_test_accuracy=float(stats[m].mean()),population_std=float(stats[m].std()),
+      worst_test_accuracy=float(stats[m].min()),best_test_accuracy=float(stats[m].max()),
+      mean_selected_validation_accuracy=float(np.mean([r['best_validation_acc'] for r in selected[m].values()])),
+      n_params=selected[m][0]['n_params'],tokens={'EEGNet':None,'VanillaEEGTransformer':482,'YourModel':17}[m]) for m in models}
+ (ROOT/'part2_transformer/comparison_summary.json').write_text(json.dumps(summary,indent=2))
  (ROOT/'ANSWERS.md').write_text(text,encoding='utf-8')
  print('Generated ANSWERS.md from real records')
 

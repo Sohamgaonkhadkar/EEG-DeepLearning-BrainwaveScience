@@ -1,0 +1,7 @@
+{
+  "integrity_tests_passed": 8,
+  "integrity_test_seconds": 114.098,
+  "logging_equivalence_passed": true,
+  "checkpoint_reload_predictions_verified": true,
+  "command": "python -m unittest discover -s tests -v; python tests/check_logging_equivalence.py"
+}
