@@ -54,11 +54,6 @@ def main():
     print(f"data: {X.shape}, subjects={len(np.unique(groups))}, "
           f"class balance={np.bincount(y)}")
 
-    # Per-channel z-scoring.
-    mean = X.mean(axis=(0, 2), keepdims=True)
-    std = X.std(axis=(0, 2), keepdims=True) + 1e-6
-    X = ((X - mean) / std).astype(np.float32)
-
     # Subject-independent evaluation: hold out 20% for test, then 20% of the
     # remainder for validation.
     idx = np.arange(len(y))
@@ -74,6 +69,11 @@ def main():
     assert not (set(groups[tr]) & set(groups[va]) or
                 set(groups[tr]) & set(groups[te]) or
                 set(groups[va]) & set(groups[te]))
+
+    # Fit only on the optimization subjects, excluding validation and test.
+    mean = X[tr].mean(axis=(0, 2), keepdims=True)
+    std = X[tr].std(axis=(0, 2), keepdims=True) + 1e-6
+    X = ((X - mean) / std).astype(np.float32)
 
     n_ch, n_t = X.shape[1], X.shape[2]
     model = EEGNet(n_ch, n_t)
