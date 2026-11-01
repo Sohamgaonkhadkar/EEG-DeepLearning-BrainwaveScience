@@ -66,6 +66,9 @@ def main():
    assert all('train_acc' in h and 'train_eval_loss' in h for h in r['history'])
  historical=records(ROOT/'audit_snapshot_before_stop/part2_transformer/results.jsonl')
  assert p2[:len(historical)]==historical
+ assert (ROOT/'part2_transformer/results.jsonl').read_bytes().startswith((ROOT/'audit_snapshot_before_stop/part2_transformer/results.jsonl').read_bytes())
+ for name in ['results.jsonl','original_results.jsonl']:
+  assert (ROOT/'part1_diagnose'/name).read_bytes()==(ROOT/'audit_snapshot_before_stop/part1_diagnose'/name).read_bytes()
  checks.append('Historical five runs unchanged; new checkpoints and training metrics present')
  if (ROOT/'refits/part2_transformer/results.jsonl').exists():
   plan=json.loads((ROOT/'refit_plan.json').read_text())
