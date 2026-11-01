@@ -1,0 +1,52 @@
+COMMAND: C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\Scripts\python.exe generate_report.py
+Generated ANSWERS.md from real records
+COMMAND: C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\Scripts\python.exe plot_training.py
+{
+  "EEGNet": {
+    "final_training_loss_mean": 0.4606378533222057,
+    "final_validation_loss_mean": 0.6277298503451877,
+    "mean_training_seconds": 93.95683603332145
+  },
+  "VanillaEEGTransformer": {
+    "final_training_loss_mean": 0.08068262592509941,
+    "final_validation_loss_mean": 2.0560363910816335,
+    "mean_training_seconds": 1045.105430800002
+  },
+  "YourModel": {
+    "final_training_loss_mean": 0.13285289342388695,
+    "final_validation_loss_mean": 1.8850878256338615,
+    "mean_training_seconds": 266.5089762999948
+  }
+}
+COMMAND: C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\Scripts\python.exe verify_submission.py
+All six separate scientific bug-fix commits remain in local history
+All 60 source EDF SHA256 hashes match MNE registry
+Actual result accuracies/confusion matrices and validation checkpoint histories recompute exactly
+Completed seed records verified; missing runs: []
+Historical five runs unchanged; new checkpoints and training metrics present
+Optional refits not executed; excluded from mandatory completion
+All required figures and supplementary beta ERD are valid PNGs
+Part 1 EEGNet architecture and Part 2 baseline model source are unchanged
+Original starter remains byte-identical to supplied ZIP
+No Git remote configured; raw datasets and checkpoints not tracked
+COMMAND: git add --all
+COMMAND: git commit -m Finalize assessment results, checkpoints manifest, answers and verification
+[master 860873b] Finalize assessment results, checkpoints manifest, answers and verification
+ 13 files changed, 1245 insertions(+), 24 deletions(-)
+ create mode 100644 logs/development_diagnostics.log
+ create mode 100644 logs/finalization.log
+ create mode 100644 logs/vanilla_seed2_restart.log
+ create mode 100644 part2_transformer/run_records/VanillaEEGTransformer_seed2.json
+ create mode 100644 verification.json
+COMMAND: C:\Users\Soham\Documents\Basil Health assignment-soham-gaonkhadkar\.venv\Scripts\python.exe verify_submission.py
+All six separate scientific bug-fix commits remain in local history
+All 60 source EDF SHA256 hashes match MNE registry
+Actual result accuracies/confusion matrices and validation checkpoint histories recompute exactly
+Completed seed records verified; missing runs: []
+Historical five runs unchanged; new checkpoints and training metrics present
+Optional refits not executed; excluded from mandatory completion
+All required figures and supplementary beta ERD are valid PNGs
+Part 1 EEGNet architecture and Part 2 baseline model source are unchanged
+Original starter remains byte-identical to supplied ZIP
+No Git remote configured; raw datasets and checkpoints not tracked
+FINAL VERIFICATION PASSED; NO REMOTE ACTIONS PERFORMED
