@@ -3,6 +3,10 @@
 Dataset: PhysioNet EEG Motor Movement/Imagery (EEGBCI), 64 channels, 160 Hz.
 Task: imagined opening/closing of BOTH FISTS (T1) vs BOTH FEET (T2).
 """
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from eeg_quality import validate_subject, save_audit
 import numpy as np
 import mne
 from mne.datasets import eegbci
@@ -23,7 +27,7 @@ EVENT_ID = dict(hands=1, feet=2)
 
 def load_raw(subject, runs=RUNS):
     """Download (first call only) and load the requested runs as one Raw object."""
-    files = eegbci.load_data(subject, runs)
+    files = eegbci.load_data(subject, runs, update_path=False)
     raws = [mne.io.read_raw_edf(f, preload=True, verbose="error") for f in files]
     raw = mne.concatenate_raws(raws)
     eegbci.standardize(raw)              # "C3.." -> "C3", "Fcz" -> "FCz", ...
@@ -53,8 +57,11 @@ def epoch_subject(subject):
 
 def build_dataset(subjects=SUBJECTS):
     """Stack all subjects. `groups` holds the subject id of every trial."""
-    Xs, ys, gs = [], [], []
+    Xs, ys, gs, audits = [], [], [], []
     for s in subjects:
         X, y, ch_names = epoch_subject(s)
+        audits.append(validate_subject(X, y, ch_names, s, 160, RUNS, "uV",
+                                       np.array(CROP)))
         Xs.append(X); ys.append(y); gs.append(np.full(len(y), s))
+    save_audit(audits, "data_audit.json")
     return np.concatenate(Xs), np.concatenate(ys), np.concatenate(gs), ch_names

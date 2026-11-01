@@ -32,7 +32,11 @@ def erd_percent(epochs, cond):
     p = epochs[cond].get_data(copy=True).mean(axis=0)          # (ch, time)
     t = epochs.times
     b = (t >= BASELINE[0]) & (t < BASELINE[1])
+    if not b.any():
+        raise ValueError("Baseline does not overlap the epoch")
     ref = p[:, b].mean(axis=1, keepdims=True)
+    if np.any(ref <= 0) or not np.isfinite(ref).all():
+        raise ValueError("Baseline power must be finite and positive")
     return (p - ref) / ref * 100.0, t
 
 
@@ -51,6 +55,8 @@ def main():
             erd, t = erd_percent(ep, c)
             curves[c].append(erd[[ep.ch_names.index(ch) for ch in PICKS]])
 
+    np.savez_compressed(f"erd_{args.band}_curves.npz", times=t,
+                        **{c: np.array(curves[c]) for c in EVENT_ID})
     fig, axes = plt.subplots(1, len(PICKS), figsize=(12, 3.5), sharey=True)
     for i, ch in enumerate(PICKS):
         for c in EVENT_ID:
