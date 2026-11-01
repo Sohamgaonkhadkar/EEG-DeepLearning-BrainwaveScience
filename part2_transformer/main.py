@@ -3,7 +3,7 @@ EEG Transformer Sprint — entry point.
 Run:  python main.py
 
 This script:
-  1. loads the cross-subject split (train subjects 1-8, test 9-10),
+  1. loads subjects 1-6 for training, 7-8 validation, 9-10 test,
   2. trains the two baselines (EEGNet, vanilla transformer),
   3. trains YOUR model across a few seeds and reports best + worst,
   4. saves one figure (figure.png).
@@ -46,7 +46,7 @@ class YourModel(nn.Module):
                  patch=32, d_model=64, n_heads=4, depth=3, p=0.3):
         super().__init__()
         # Learned temporal patches: a Conv1d with stride == kernel tokenises
-        # the signal into n_time//patch tokens, each summarising `patch` samples
+        # the signal into ceil(n_time/patch) tokens, each summarising `patch` samples
         # across all electrodes. This is the ONE bias in the starter example.
         if patch < 1 or n_time < 1 or n_chan < 1:
             raise ValueError("Input dimensions and patch must be positive")
@@ -94,12 +94,13 @@ def save_figure(model, Xte, yte, device, path="figure.png"):
         emb = np.concatenate([model(torch.from_numpy(Xte[i:i+16]).to(device),
                                             return_embed=True)[1].cpu().numpy()
                               for i in range(0, len(Xte), 16)])
-    if emb is None:
-        print("  (your model did not return an embedding; skipping figure)")
-        return
     n = len(emb)
     emb2 = TSNE(n_components=2, perplexity=min(30, max(5, n // 4)),
                 init="pca", random_state=0).fit_transform(emb)
+    with open("embedding_coordinates.json", "w") as f:
+        json.dump(dict(method="t-SNE", random_state=0, labels=yte.tolist(),
+                       coordinates=emb2.tolist(), n_samples=n,
+                       checkpoint="validation-selected first requested seed"), f)
     plt.figure(figsize=(5, 4))
     for c, name in [(0, "fists"), (1, "feet")]:
         m = yte == c
@@ -159,9 +160,8 @@ def main():
             from sklearn.metrics import confusion_matrix, classification_report
             record["confusion_matrix"] = confusion_matrix(yte, preds, labels=[0,1]).tolist()
             record["per_class"] = classification_report(yte, preds, labels=[0,1], target_names=["fists","feet"], output_dict=True, zero_division=0)
-            import json as _json
             from pathlib import Path
-            audit = _json.loads(Path("data_audit.json").read_text())
+            audit = json.loads(Path("data_audit.json").read_text())
             n9 = audit[8]["shape"][0]
             record["per_subject_accuracy"] = {
                 "9": float(np.mean(np.array(preds[:n9]) == yte[:n9])),

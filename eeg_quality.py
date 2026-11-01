@@ -43,3 +43,24 @@ def save_audit(records, path):
             raise ValueError("Duplicate epoch crosses subject boundary")
         seen.update(r["epoch_hashes"])
     Path(path).write_text(json.dumps(records, indent=2)+"\n")
+
+
+def standardize_training(Xtrain, *held_out, epsilon=1e-6):
+    """Fit per-channel scale on optimization data and apply to other partitions."""
+    mu = Xtrain.mean(axis=(0, 2), keepdims=True)
+    sd = Xtrain.std(axis=(0, 2), keepdims=True) + epsilon
+    return tuple(((x-mu)/sd).astype(np.float32) for x in (Xtrain, *held_out))
+
+
+def subject_split(groups):
+    """Fixed last two subjects test; preceding two validation; remainder train."""
+    subjects=np.unique(groups)
+    if len(subjects)<5:
+        raise ValueError("At least five subjects are required for disjoint splits")
+    tr=np.flatnonzero(np.isin(groups,subjects[:-4]))
+    va=np.flatnonzero(np.isin(groups,subjects[-4:-2]))
+    te=np.flatnonzero(np.isin(groups,subjects[-2:]))
+    partitions=[set(groups[i]) for i in [tr,va,te]]
+    if any(partitions[i] & partitions[j] for i,j in [(0,1),(0,2),(1,2)]):
+        raise ValueError("Subject overlap across evaluation boundaries")
+    return tr,va,te

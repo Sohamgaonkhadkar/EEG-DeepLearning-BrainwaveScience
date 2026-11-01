@@ -6,6 +6,7 @@ ERD% = (P(t) - P_baseline) / P_baseline * 100, where P(t) is band power
 Usage: python erd.py --subjects 1 2 3
 """
 import argparse
+import json
 import numpy as np
 import mne
 import matplotlib
@@ -57,10 +58,19 @@ def main():
 
     np.savez_compressed(f"erd_{args.band}_curves.npz", times=t,
                         **{c: np.array(curves[c]) for c in EVENT_ID})
+    summary = {}
+    task_mask = (t >= 0) & (t <= 4)
+    for condition, subject_curves in curves.items():
+        summary[condition] = {ch: float(np.mean(np.array(subject_curves)[:, i, task_mask]))
+                              for i, ch in enumerate(PICKS)}
+    with open(f"erd_{args.band}_summary.json", "w") as f:
+        json.dump(dict(band=args.band, subjects=args.subjects, baseline=BASELINE,
+                       imagery_window=[0,4], mean_erd_percent=summary), f, indent=2)
     fig, axes = plt.subplots(1, len(PICKS), figsize=(12, 3.5), sharey=True)
     for i, ch in enumerate(PICKS):
         for c in EVENT_ID:
             axes[i].plot(t, np.mean(curves[c], axis=0)[i], label=c)
+        axes[i].axvspan(*BASELINE, color="gray", alpha=0.15)
         axes[i].axvline(0, color="k", lw=0.8); axes[i].axhline(0, color="k", lw=0.5)
         axes[i].set_title(f"{ch} {args.band}"); axes[i].set_xlabel("time from cue (s)")
     axes[0].set_ylabel("ERD/ERS (%)"); axes[0].legend()

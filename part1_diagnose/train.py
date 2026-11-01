@@ -10,10 +10,11 @@ import torch
 import torch.nn as nn
 
 from data import build_dataset, SUBJECTS
+from eeg_quality import standardize_training, subject_split
 from model import EEGNet, count_params
 
 # Electrode groups for the channel-subset run (Task 3).
-# TODO: fill in "frontal" with the electrode names you choose.
+# Predeclared frontopolar and frontal subset, checked against loaded names.
 CHANNEL_GROUPS = {
     "all": None,
     "frontal": ["Fp1", "Fpz", "Fp2", "AF3", "AF4", "F3", "Fz", "F4"],
@@ -57,26 +58,8 @@ def main():
     print(f"data: {X.shape}, subjects={len(np.unique(groups))}, "
           f"class balance={np.bincount(y)}")
 
-    # Subject-independent evaluation: hold out 20% for test, then 20% of the
-    # remainder for validation.
-    idx = np.arange(len(y))
-    subjects = np.unique(groups)
-    if len(subjects) < 5:
-        raise ValueError("At least five subjects are required for disjoint splits")
-    # Fixed last two subjects: same test population across seeds and Part 2.
-    te = idx[np.isin(groups, subjects[-2:])]
-    tr = idx[~np.isin(groups, subjects[-2:])]
-    validation_subjects = np.unique(groups[tr])[-2:]
-    va = tr[np.isin(groups[tr], validation_subjects)]
-    tr = tr[~np.isin(groups[tr], validation_subjects)]
-    assert not (set(groups[tr]) & set(groups[va]) or
-                set(groups[tr]) & set(groups[te]) or
-                set(groups[va]) & set(groups[te]))
-
-    # Fit only on the optimization subjects, excluding validation and test.
-    mean = X[tr].mean(axis=(0, 2), keepdims=True)
-    std = X[tr].std(axis=(0, 2), keepdims=True) + 1e-6
-    X = ((X - mean) / std).astype(np.float32)
+    tr, va, te = subject_split(groups)
+    X[tr], X[va], X[te] = standardize_training(X[tr], X[va], X[te])
 
     n_ch, n_t = X.shape[1], X.shape[2]
     model = EEGNet(n_ch, n_t)
@@ -110,7 +93,7 @@ def main():
 
     model.load_state_dict(best_state)
     result = dict(channels=args.channels, seed=args.seed, best_epoch=best_ep,
-                  test_acc=evaluate(model, X[te], y[te]), n_test=len(te),
+                  n_test=len(te),
                   protocol="subject_disjoint_validation", epochs=args.epochs,
                   lr=args.lr, batch_size=args.bs, n_params=count_params(model),
                   train_subjects=np.unique(groups[tr]).tolist(),
@@ -124,6 +107,7 @@ def main():
     with torch.no_grad():
         for i in range(0, len(te), 64):
             result["test_predictions"].extend(model(torch.from_numpy(X[te[i:i+64]])).argmax(1).tolist())
+    result["test_acc"] = float(np.mean(np.array(result["test_predictions"]) == y[te]))
     from sklearn.metrics import confusion_matrix, classification_report
     result["confusion_matrix"] = confusion_matrix(result["test_labels"], result["test_predictions"], labels=[0,1]).tolist()
     result["per_class"] = classification_report(result["test_labels"], result["test_predictions"], labels=[0,1], target_names=["fists","feet"], output_dict=True, zero_division=0)

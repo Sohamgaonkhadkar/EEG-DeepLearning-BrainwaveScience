@@ -1,0 +1,9 @@
+# Direct scientific dependencies measured in environment_actual.json.
+# Tested with Python 3.10.18, CPU. Install into a fresh venv.
+numpy==2.2.6
+scipy==1.15.3
+scikit-learn==1.7.2
+matplotlib==3.10.9
+mne==1.12.1
+torch==2.12.0
+pypdf==6.21.4

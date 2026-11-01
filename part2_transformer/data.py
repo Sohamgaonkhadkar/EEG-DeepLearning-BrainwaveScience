@@ -18,7 +18,7 @@ The first call downloads ~50 MB to the MNE data dir and caches it.
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from eeg_quality import validate_subject, save_audit
+from eeg_quality import validate_subject, save_audit, standardize_training
 import numpy as np
 import mne
 from mne.datasets import eegbci
@@ -79,9 +79,9 @@ def load_validation_data():
     Xtr, ytr = np.concatenate(xs[:6]), np.concatenate(ys[:6])
     Xva, yva = np.concatenate(xs[6:8]), np.concatenate(ys[6:8])
     Xte, yte = np.concatenate(xs[8:]), np.concatenate(ys[8:])
-    mu = Xtr.mean(axis=(0, 2), keepdims=True)
-    sd = Xtr.std(axis=(0, 2), keepdims=True) + 1e-6
-    return ((Xtr-mu)/sd, ytr, (Xva-mu)/sd, yva, (Xte-mu)/sd, yte)
+    Xtr, Xva, Xte = standardize_training(Xtr, Xva, Xte)
+    return Xtr, ytr, Xva, yva, Xte, yte
+
 
 def get_channel_positions():
     """3D electrode coordinates (C, 3), aligned to the channel order in X.

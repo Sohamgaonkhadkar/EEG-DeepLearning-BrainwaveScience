@@ -11,7 +11,7 @@ from main import YourModel
 from models import EEGNet, VanillaEEGTransformer
 from train import train_model, set_seed
 sys.path.insert(0, str(ROOT))
-from eeg_quality import validate_subject, save_audit
+from eeg_quality import validate_subject, save_audit, standardize_training, subject_split
 
 
 class IntegrityTests(unittest.TestCase):
@@ -63,6 +63,25 @@ class IntegrityTests(unittest.TestCase):
         values,times=erd.erd_percent(Epochs(),"hands")
         np.testing.assert_allclose(values[0,:3],0)
         np.testing.assert_allclose(values[0,3:],-50)
+
+    def test_held_out_values_cannot_change_fitted_scaling(self):
+        tr=np.arange(48,dtype="float32").reshape(3,2,8)
+        va=np.ones((2,2,8),dtype="float32")
+        te=va*10
+        train1,val1,test1=standardize_training(tr,va,te)
+        train2,val2,test2=standardize_training(tr,va,te*1e9)
+        np.testing.assert_array_equal(train1,train2)
+        np.testing.assert_array_equal(val1,val2)
+        np.testing.assert_allclose(train1.mean(axis=(0,2)),0,atol=1e-6)
+        self.assertFalse(np.array_equal(test1,test2))
+
+    def test_subjects_are_disjoint(self):
+        groups=np.repeat(np.arange(1,11),4)
+        tr,va,te=subject_split(groups)
+        self.assertEqual(set(groups[tr]),set(range(1,7)))
+        self.assertEqual(set(groups[va]),{7,8})
+        self.assertEqual(set(groups[te]),{9,10})
+        self.assertEqual(len(set(tr)|set(va)|set(te)),len(groups))
 
     def test_invalid_data_rejected(self):
         channels=["C3","Cz","C4"]+[f"X{i}" for i in range(61)]
