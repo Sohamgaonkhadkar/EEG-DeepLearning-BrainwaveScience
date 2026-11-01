@@ -48,7 +48,11 @@ def prepare_plan():
     p2=jsonl(ROOT/'part2_transformer/results.jsonl')
     plan=dict(rule='per-model median of earliest validation-maximizing epochs across seeds 0/1/2; Part 1 uses its single seed',
               train_subjects=list(range(1,9)),test_subjects=[9,10],
-              learning_rate=1e-3,weight_decay=1e-3,
+              learning_rate=1e-3,weight_decay=1e-3,optimizer='AdamW',
+              loss='CrossEntropyLoss',threads=4,
+              architectures=dict(EEGNet=dict(kernel=80,dropout=.5),
+                                 VanillaEEGTransformer=dict(d_model=64,heads=4,depth=3,dropout=.3),
+                                 YourModel=dict(patch=32,d_model=64,heads=4,depth=3,dropout=.3)),
               test_status='Previously scored in required development comparisons; no test metric used in refit decisions',
               part1={},part2={})
     for channels in ['all','frontal']:
@@ -165,6 +169,7 @@ def run_refits():
                     duration_rule=plan['rule'],n_train=len(y1) if part=='part1_diagnose' else len(y2),
                     n_test=len(yte),train_subjects=list(range(1,9)),test_subjects=[9,10],
                     normalization_fit_subjects=list(range(1,9)),n_params=count_params(model),
+                    device=device,threads=4,input_shape=list(Xte.shape[1:]),
                     lr=1e-3,weight_decay=1e-3,batch_size=64 if part=='part1_diagnose' else 16,
                     test_acc=accuracy,test_loss=loss,history=history,seconds=seconds,
                     test_predictions=predictions.tolist(),test_labels=labels,
