@@ -14,6 +14,9 @@ def validate_subject(X, y, channels, subject, sfreq, runs, units, times):
         raise ValueError(f"S{subject}: invalid sampling rate or labels")
     if not np.isfinite(X).all():
         raise ValueError(f"S{subject}: non-finite samples; inspect source before training")
+    expected_times = round((times[-1]-times[0])*sfreq)+1
+    if X.shape[2] != expected_times:
+        raise ValueError(f"S{subject}: unexpected epoch sample count")
     # Diagnostics only: no thresholds are learned and no test-driven cleaning.
     uv = X * (1e6 if units == "V" else 1)
     peak = np.max(np.abs(uv), axis=(1, 2))

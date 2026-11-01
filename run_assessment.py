@@ -23,8 +23,12 @@ def run(label, directory, args):
         log.write('Working directory: '+str(directory)+'\n')
         log.flush()
         proc=subprocess.Popen([sys.executable,'-u',*args],cwd=directory,env=ENV,
-                              stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
                               text=True,encoding='utf-8',errors='replace')
+        # The untouched starter asks once per subject to persist its cache path.
+        # Decline without editing starter source or the user's MNE config.
+        proc.stdin.write("n\n" * 20)
+        proc.stdin.close()
         for line in proc.stdout:
             log.write(line); log.flush()
             if len(line)<300: print(label+': '+line.rstrip(),flush=True)

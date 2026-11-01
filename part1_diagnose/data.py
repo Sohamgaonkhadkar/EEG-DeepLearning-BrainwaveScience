@@ -43,7 +43,7 @@ def get_events(raw):
     return events
 
 
-def epoch_subject(subject):
+def epoch_subject(subject, return_metadata=False):
     """Return X (n_trials, 64, n_times) in microvolts, y (0=hands, 1=feet), ch_names."""
     raw = load_raw(subject)
     raw.filter(L_FREQ, H_FREQ, fir_design="firwin", verbose="error")
@@ -52,16 +52,23 @@ def epoch_subject(subject):
                         preload=True, verbose="error")
     X = epochs.copy().crop(*CROP).get_data(copy=True) * 1e6
     y = epochs.events[:, 2] - 1
-    return X.astype(np.float32), y.astype(np.int64), epochs.ch_names
+    result = (X.astype(np.float32), y.astype(np.int64), epochs.ch_names)
+    if return_metadata:
+        from collections import Counter
+        reasons = Counter(reason for trial in epochs.drop_log for reason in trial)
+        return (*result, dict(n_annotated_task_events=len(events),
+                              n_retained_epochs=len(y), drop_reasons=dict(reasons)))
+    return result
 
 
 def build_dataset(subjects=SUBJECTS):
     """Stack all subjects. `groups` holds the subject id of every trial."""
     Xs, ys, gs, audits = [], [], [], []
     for s in subjects:
-        X, y, ch_names = epoch_subject(s)
+        X, y, ch_names, metadata = epoch_subject(s, return_metadata=True)
         audits.append(validate_subject(X, y, ch_names, s, 160, RUNS, "uV",
                                        np.array(CROP)))
+        audits[-1].update(metadata)
         Xs.append(X); ys.append(y); gs.append(np.full(len(y), s))
     save_audit(audits, "data_audit.json")
     return np.concatenate(Xs), np.concatenate(ys), np.concatenate(gs), ch_names
