@@ -14,12 +14,15 @@ State your hypothesis in the README. Do not quietly edit the vanilla
 transformer in models.py — the contrast is the point.
 """
 import argparse
+import json
+import time
+import math
 import numpy as np
 import torch
 
-from data import load_data, get_channel_positions
+from data import load_validation_data
 from models import EEGNet, VanillaEEGTransformer, count_params
-from train import train_model, set_seed
+from train import train_model, set_seed, evaluate, make_loaders
 
 
 # =========================================================================== #
@@ -45,9 +48,12 @@ class YourModel(nn.Module):
         # Learned temporal patches: a Conv1d with stride == kernel tokenises
         # the signal into n_time//patch tokens, each summarising `patch` samples
         # across all electrodes. This is the ONE bias in the starter example.
+        if patch < 1 or n_time < 1 or n_chan < 1:
+            raise ValueError("Input dimensions and patch must be positive")
+        self.n_time, self.patch = n_time, patch
         self.tokenizer = nn.Conv1d(n_chan, d_model, kernel_size=patch,
                                    stride=patch)
-        n_tokens = n_time // patch
+        n_tokens = math.ceil(n_time / patch)
         self.cls = nn.Parameter(torch.zeros(1, 1, d_model))
         self.pos = nn.Parameter(torch.zeros(1, n_tokens + 1, d_model))
         nn.init.trunc_normal_(self.pos, std=0.02)
@@ -60,6 +66,10 @@ class YourModel(nn.Module):
         self.head = nn.Linear(d_model, n_classes)
 
     def forward(self, x, return_embed=False):   # x: (B, C, T)
+        if x.ndim != 3 or x.shape[2] != self.n_time:
+            raise ValueError(f"Expected (batch, channels, {self.n_time})")
+        # Preserve the last partial patch instead of silently dropping samples.
+        x = torch.nn.functional.pad(x, (0, (-self.n_time) % self.patch))
         tok = self.tokenizer(x).transpose(1, 2)  # (B, n_tokens, d)
         cls = self.cls.expand(x.size(0), -1, -1)
         z = torch.cat([cls, tok], dim=1) + self.pos
@@ -72,17 +82,6 @@ class YourModel(nn.Module):
 # =========================================================================== #
 
 
-def run_across_seeds(build_fn, Xtr, ytr, Xte, yte, seeds, device, **kw):
-    accs = []
-    for s in seeds:
-        set_seed(s)
-        model = build_fn()
-        best, _ = train_model(model, Xtr, ytr, Xte, yte, device=device, **kw)
-        accs.append(best)
-        print(f"  seed {s}: best test acc {best:.3f}")
-    return np.array(accs)
-
-
 def save_figure(model, Xte, yte, device, path="figure.png"):
     """t-SNE of the CLS embeddings on the test subjects, coloured by class."""
     import matplotlib
@@ -92,8 +91,9 @@ def save_figure(model, Xte, yte, device, path="figure.png"):
 
     model.eval()
     with torch.no_grad():
-        out = model(torch.from_numpy(Xte).to(device), return_embed=True)
-        emb = out[1].cpu().numpy() if isinstance(out, tuple) else None
+        emb = np.concatenate([model(torch.from_numpy(Xte[i:i+16]).to(device),
+                                            return_embed=True)[1].cpu().numpy()
+                              for i in range(0, len(Xte), 16)])
     if emb is None:
         print("  (your model did not return an embedding; skipping figure)")
         return
@@ -113,52 +113,70 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--epochs", type=int, default=40)
     ap.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
+    ap.add_argument("--results", default="results.jsonl")
+    ap.add_argument("--threads", type=int, default=4)
     args = ap.parse_args()
+    torch.set_num_threads(args.threads)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"device: {device}")
 
     print("\nloading data (first run downloads ~50 MB)...")
-    Xtr, ytr, Xte, yte = load_data()
+    Xtr, ytr, Xva, yva, Xte, yte = load_validation_data()
     C, T = Xtr.shape[1], Xtr.shape[2]
     print(f"train {Xtr.shape}  test {Xte.shape}  "
           f"(class balance train {ytr.mean():.2f} / test {yte.mean():.2f})")
 
-    print("\n=== Baseline 1: EEGNet (conv priors) ===")
-    set_seed(0)
-    net = EEGNet(C, T)
-    print(f"params: {count_params(net):,}")
-    best, _ = train_model(net, Xtr, ytr, Xte, yte, epochs=args.epochs,
-                          device=device, verbose=True)
-    print(f"EEGNet best test acc: {best:.3f}")
-
-    print("\n=== Baseline 2: vanilla transformer (no EEG prior) ===")
-    set_seed(0)
-    vit = VanillaEEGTransformer(C, T)
-    print(f"params: {count_params(vit):,}")
-    accs_v = run_across_seeds(lambda: VanillaEEGTransformer(C, T),
-                              Xtr, ytr, Xte, yte, args.seeds, device,
-                              epochs=args.epochs)
-    print(f"vanilla transformer: best {accs_v.max():.3f}  "
-          f"worst {accs_v.min():.3f}  mean {accs_v.mean():.3f}")
-
-    print("\n=== YOUR MODEL ===")
-    set_seed(0)
-    ym = YourModel(C, T)
-    print(f"params: {count_params(ym):,}")
-    accs = run_across_seeds(lambda: YourModel(C, T),
-                            Xtr, ytr, Xte, yte, args.seeds, device,
-                            epochs=args.epochs)
-    print(f"your model: best {accs.max():.3f}  worst {accs.min():.3f}  "
-          f"mean {accs.mean():.3f}  std {accs.std():.3f}")
-
-    print("\nsaving figure...")
-    set_seed(0)
-    ym = YourModel(C, T)
-    train_model(ym, Xtr, ytr, Xte, yte, epochs=args.epochs, device=device)
-    save_figure(ym, Xte, yte, device)
-
-    print("\ndone. Report best AND worst in the README — no cherry-picking.")
+    if args.epochs < 1:
+        ap.error("epochs must be positive")
+    records = []
+    figure_model = None
+    builders = {"EEGNet": lambda: EEGNet(C, T, kern=80, p=0.5),
+                "VanillaEEGTransformer": lambda: VanillaEEGTransformer(C, T),
+                "YourModel": lambda: YourModel(C, T)}
+    for name, build in builders.items():
+        for seed in args.seeds:
+            set_seed(seed)
+            model = build()
+            started = time.perf_counter()
+            val_acc, history = train_model(model, Xtr, ytr, Xva, yva,
+                                 epochs=args.epochs, device=device, verbose=True)
+            _, test_loader = make_loaders(Xtr, ytr, Xte, yte)
+            acc, test_loss, preds, labels = evaluate(model, test_loader, device, True)
+            record = dict(model=name, seed=seed, epochs=args.epochs,
+                          n_params=count_params(model), test_acc=acc,
+                          n_train=len(ytr), n_test=len(yte),
+                          train_subjects=list(range(1, 7)), validation_subjects=[7, 8],
+                          training_pool=list(range(1, 9)), test_subjects=[9, 10],
+                          n_validation=len(yva), best_validation_acc=val_acc,
+                          selected_epoch=model.selected_epoch, history=history,
+                          test_loss=test_loss,
+                          lr=1e-3, weight_decay=1e-3, batch_size=16,
+                          checkpoint="maximum_validation_accuracy_earliest_tie", device=device,
+                          seconds=time.perf_counter()-started,
+                          input_shape=[C, T], test_predictions=preds,
+                          test_labels=yte.tolist())
+            from sklearn.metrics import confusion_matrix, classification_report
+            record["confusion_matrix"] = confusion_matrix(yte, preds, labels=[0,1]).tolist()
+            record["per_class"] = classification_report(yte, preds, labels=[0,1], target_names=["fists","feet"], output_dict=True, zero_division=0)
+            import json as _json
+            from pathlib import Path
+            audit = _json.loads(Path("data_audit.json").read_text())
+            n9 = audit[8]["shape"][0]
+            record["per_subject_accuracy"] = {
+                "9": float(np.mean(np.array(preds[:n9]) == yte[:n9])),
+                "10": float(np.mean(np.array(preds[n9:]) == yte[n9:]))}
+            print(json.dumps(record), flush=True)
+            records.append(record)
+            with open(args.results, "a") as f:
+                f.write(json.dumps(record)+"\n")
+            # Preselect the first requested seed, irrespective of its accuracy.
+            if name == "YourModel" and seed == args.seeds[0]:
+                figure_model = model
+        accs = np.array([r["test_acc"] for r in records if r["model"] == name])
+        print(f"{name}: best {accs.max():.4f}, worst {accs.min():.4f}, "
+              f"mean {accs.mean():.4f}, population std {accs.std():.4f}", flush=True)
+    save_figure(figure_model, Xte, yte, device)
 
 
 if __name__ == "__main__":
