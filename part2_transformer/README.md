@@ -65,10 +65,10 @@ lucky spike you can't explain.
 
 ## Your write-up (fill this in)
 
-**Hypothesis:**
+**Hypothesis:** Learned 32-sample temporal aggregation may improve stability relative to per-timestep attention by imposing locality and reducing attention cost; superiority to EEGNet is not assumed. Recorded before implementation in EXECUTION_PLAN.md.
 
-**What I changed and why:**
+**What I changed and why:** Deliberately validate the starter patch-tokenizer idea, adding right padding so sample 481 is represented, shape checks and embedding tests. I do not claim to have invented the provided Conv1d tokenizer. Use validation subjects 7-8 for checkpoint selection, optimize on 1-6 and evaluate 9-10 only after selection. All three models use all requested seeds, 40 epochs and batch size 16. The vanilla architecture is untouched; EEGNet uses the Part 1 kernel/dropout configuration.
 
-**Results (best / worst / mean across seeds):**
+**Results (best / worst / mean across seeds):** See ../ANSWERS.md and results.jsonl for the complete measured table, population standard deviations, best/worst and per-subject results.
 
-**Figure:**
+**Figure:** figure.png uses the first requested seed (default 0), selected by validation accuracy, on held-out embeddings with fixed t-SNE random state 0. The plot is descriptive and is not used to tune the model.
