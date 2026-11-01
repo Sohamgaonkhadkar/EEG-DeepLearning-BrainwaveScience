@@ -44,12 +44,18 @@ if __name__=='__main__':
                for s in range(1,11) for r in [5,6,9,10,13,14]]
         while not all(p.exists() for p in paths): time.sleep(5)
     original=WORKSPACE/'original_starter'/'eeg_dl_exam_3hr'/'part1_diagnose'
-    run('original_part1',original,['train.py','--channels','all','--seed','0'])
-    shutil.copy2(original/'results.jsonl',ROOT/'part1_diagnose'/'original_results.jsonl')
-    run('corrected_all',ROOT/'part1_diagnose',['train.py','--channels','all','--seed','0'])
-    run('corrected_frontal',ROOT/'part1_diagnose',['train.py','--channels','frontal','--seed','0'])
-    run('erd_mu',ROOT/'part1_diagnose',['erd.py','--band','mu'])
-    run('erd_beta',ROOT/'part1_diagnose',['erd.py','--band','beta'])
-    run('part2_40epochs_3seeds',ROOT/'part2_transformer',
-        ['main.py','--epochs','40','--seeds','0','1','2'])
+    jobs=[('original_part1',original,['train.py','--channels','all','--seed','0']),
+          ('corrected_all',ROOT/'part1_diagnose',['train.py','--channels','all','--seed','0']),
+          ('corrected_frontal',ROOT/'part1_diagnose',['train.py','--channels','frontal','--seed','0']),
+          ('erd_mu',ROOT/'part1_diagnose',['erd.py','--band','mu']),
+          ('erd_beta',ROOT/'part1_diagnose',['erd.py','--band','beta']),
+          ('part2_40epochs_3seeds',ROOT/'part2_transformer',
+           ['main.py','--epochs','40','--seeds','0','1','2'])]
+    resume=sys.argv[sys.argv.index('--resume')+1] if '--resume' in sys.argv else jobs[0][0]
+    labels=[job[0] for job in jobs]
+    if resume not in labels: raise ValueError(f'Unknown resume stage: {resume}')
+    for label,directory,args in jobs[labels.index(resume):]:
+        run(label,directory,args)
+        if label=='original_part1':
+            shutil.copy2(original/'results.jsonl',ROOT/'part1_diagnose'/'original_results.jsonl')
     print('ALL EXPERIMENTS COMPLETE',flush=True)
