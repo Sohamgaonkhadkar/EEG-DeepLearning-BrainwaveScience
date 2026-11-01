@@ -17,6 +17,7 @@ import argparse
 import json
 import time
 import math
+from pathlib import Path
 import numpy as np
 import torch
 
@@ -110,7 +111,8 @@ def save_figure(model, Xte, yte, device, path="figure.png"):
             m = (yte == c) & (subject_ids == subject)
             plt.scatter(emb2[m, 0], emb2[m, 1], s=24, alpha=0.75,
                         c=color, marker=marker, label=f"{name}, S{subject:02d}")
-    plt.legend(); plt.title("Test-subject embeddings (your model)")
+    plt.legend(); plt.title("Test-subject embeddings (YourModel, seed 0)")
+    plt.xlabel('t-SNE dimension 1'); plt.ylabel('t-SNE dimension 2')
     plt.tight_layout(); plt.savefig(path, dpi=130)
     print(f"  saved {path}")
 
@@ -121,7 +123,18 @@ def main():
     ap.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
     ap.add_argument("--results", default="results.jsonl")
     ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--models", nargs="+", default=["EEGNet", "VanillaEEGTransformer", "YourModel"],
+                    choices=["EEGNet", "VanillaEEGTransformer", "YourModel"])
     args = ap.parse_args()
+    # Local deadline guard applies only to the queued expensive restart.
+    deadline_file = Path('../execution_deadline.json')
+    if args.models == ['VanillaEEGTransformer'] and deadline_file.exists():
+        from datetime import datetime, timezone
+        deadline = datetime.fromisoformat(json.loads(deadline_file.read_text())['deadline_utc'])
+        remaining = (deadline - datetime.now(timezone.utc)).total_seconds()
+        if remaining < 28 * 60:
+            print('Vanilla seed restart skipped: reserve submission time; insufficient runtime budget.', flush=True)
+            return
     torch.set_num_threads(args.threads)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -140,13 +153,31 @@ def main():
     builders = {"EEGNet": lambda: EEGNet(C, T, kern=80, p=0.5),
                 "VanillaEEGTransformer": lambda: VanillaEEGTransformer(C, T),
                 "YourModel": lambda: YourModel(C, T)}
+    completed = [json.loads(line) for line in Path(args.results).read_text().splitlines() if line.strip()] if Path(args.results).exists() else []
     for name, build in builders.items():
+        if name not in args.models:
+            continue
         for seed in args.seeds:
+            if any(r['model'] == name and r['seed'] == seed for r in completed):
+                print(f'Skipping preserved completed run {name} seed {seed}', flush=True)
+                continue
             set_seed(seed)
             model = build()
+            checkpoint_path = Path('checkpoints') / f'{name}_seed{seed}.pt'
+            if checkpoint_path.exists():
+                raise FileExistsError(f'Refusing to overwrite existing checkpoint {checkpoint_path}')
+            metadata = dict(model=name, seed=seed, epochs=args.epochs,
+                configuration=repr(model), n_params=count_params(model),
+                train_subjects=list(range(1,7)), validation_subjects=[7,8], test_subjects=[9,10],
+                preprocessing=dict(runs=[6,10,14], band_hz=[7,30], interval_seconds=[0,3],
+                    baseline=None, units='volts', normalization='train-only per-channel mean/std + 1e-6'),
+                lr=.001, weight_decay=.001, batch_size=16)
             started = time.perf_counter()
             val_acc, history = train_model(model, Xtr, ytr, Xva, yva,
-                                 epochs=args.epochs, device=device, verbose=True)
+                                 epochs=args.epochs, device=device, verbose=True,
+                                 checkpoint_path=checkpoint_path, checkpoint_metadata=metadata)
+            _, validation_loader = make_loaders(Xtr, ytr, Xva, yva)
+            _, _, validation_preds, _ = evaluate(model, validation_loader, device, True)
             _, test_loader = make_loaders(Xtr, ytr, Xte, yte)
             acc, test_loss, preds, labels = evaluate(model, test_loader, device, True)
             record = dict(model=name, seed=seed, epochs=args.epochs,
@@ -162,10 +193,12 @@ def main():
                           seconds=time.perf_counter()-started,
                           input_shape=[C, T], test_predictions=preds,
                           test_labels=yte.tolist())
+            record.update(checkpoint_file=str(checkpoint_path), checkpoint_reload_verified=True,
+                          validation_predictions=validation_preds, validation_labels=yva.tolist(),
+                          configuration=metadata)
             from sklearn.metrics import confusion_matrix, classification_report
             record["confusion_matrix"] = confusion_matrix(yte, preds, labels=[0,1]).tolist()
             record["per_class"] = classification_report(yte, preds, labels=[0,1], target_names=["fists","feet"], output_dict=True, zero_division=0)
-            from pathlib import Path
             audit = json.loads(Path("data_audit.json").read_text())
             n9 = audit[8]["shape"][0]
             record["per_subject_accuracy"] = {
@@ -175,13 +208,18 @@ def main():
             records.append(record)
             with open(args.results, "a") as f:
                 f.write(json.dumps(record)+"\n")
+                f.flush()
+            Path('run_records').mkdir(exist_ok=True)
+            Path(f'run_records/{name}_seed{seed}.json').write_text(json.dumps(record, indent=2))
             # Preselect the first requested seed, irrespective of its accuracy.
-            if name == "YourModel" and seed == args.seeds[0]:
+            if name == "YourModel" and seed == 0:
                 figure_model = model
+                save_figure(figure_model, Xte, yte, device)
         accs = np.array([r["test_acc"] for r in records if r["model"] == name])
+        if not len(accs):
+            continue
         print(f"{name}: best {accs.max():.4f}, worst {accs.min():.4f}, "
               f"mean {accs.mean():.4f}, population std {accs.std():.4f}", flush=True)
-    save_figure(figure_model, Xte, yte, device)
 
 
 if __name__ == "__main__":

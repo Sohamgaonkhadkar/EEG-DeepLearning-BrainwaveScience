@@ -31,7 +31,8 @@ def evaluate(model, loader, device, return_details=False):
 
 
 def train_model(model, Xtr, ytr, Xva, yva, *, epochs=40, lr=1e-3,
-                weight_decay=1e-3, device="cpu", verbose=False, batch=16):
+                weight_decay=1e-3, device="cpu", verbose=False, batch=16,
+                checkpoint_path=None, checkpoint_metadata=None):
     """Select weights on validation subjects; test arrays are never accepted here.
 
     Return best validation accuracy and training history. Earliest epoch wins ties.
@@ -54,16 +55,39 @@ def train_model(model, Xtr, ytr, Xva, yva, *, epochs=40, lr=1e-3,
             opt.step()
             total_loss += loss.item() * len(yb)
         acc, va_loss, _, _ = evaluate(model, va, device, True)
+        # DataLoader iteration consumes RNG even without shuffling. Preserve it
+        # so additional eval logging cannot change subsequent dropout/shuffling.
+        with torch.random.fork_rng(devices=list(range(torch.cuda.device_count()))):
+            train_eval = DataLoader(tr.dataset, batch_size=batch, shuffle=False)
+            tr_acc, tr_eval_loss, _, _ = evaluate(model, train_eval, device, True)
         history.append(dict(epoch=ep, train_loss=total_loss/len(ytr),
+                            train_acc=tr_acc, train_eval_loss=tr_eval_loss,
                             validation_loss=va_loss, validation_acc=acc))
         if acc > best_acc:
             best_acc, best_epoch = acc, ep
             best_state = copy.deepcopy(model.state_dict())
+            if checkpoint_path is not None:
+                from pathlib import Path
+                destination = Path(checkpoint_path)
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                temporary = destination.with_suffix('.tmp')
+                torch.save(dict(state_dict=best_state, selected_epoch=ep,
+                                best_validation_acc=acc,
+                                metadata=checkpoint_metadata or {}), temporary)
+                temporary.replace(destination)
         if verbose:
             print(f"  epoch {ep:2d} train_loss {total_loss/len(ytr):.4f} "
                   f"val_loss {va_loss:.4f} val_acc {acc:.4f}", flush=True)
     model.load_state_dict(best_state)
     model.selected_epoch = best_epoch
+    if checkpoint_path is not None:
+        before = evaluate(model, va, device, True)
+        saved = torch.load(checkpoint_path, map_location=device, weights_only=False)
+        model.load_state_dict(saved['state_dict'])
+        after = evaluate(model, va, device, True)
+        if before != after:
+            raise AssertionError('Reloaded checkpoint validation predictions differ')
+        model.checkpoint_reload_verified = True
     return best_acc, history
 
 
