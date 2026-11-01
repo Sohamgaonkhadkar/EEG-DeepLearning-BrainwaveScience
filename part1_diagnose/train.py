@@ -95,7 +95,7 @@ def main():
         if va_acc > best_acc:   # select without inspecting the held-out test
             best_acc, best_ep = va_acc, ep
             best_state = {k: v.clone() for k, v in model.state_dict().items()}
-        print(f"epoch {ep:3d}  loss {loss.item():.3f}  val {va_acc:.3f}  test {te_acc:.3f}")
+        print(f"epoch {ep:3d}  loss {loss.item():.3f}  val {va_acc:.3f}")
 
     model.load_state_dict(best_state)
     result = dict(channels=args.channels, seed=args.seed, best_epoch=best_ep,
