@@ -1,0 +1,152 @@
+[
+  {
+    "model": "YourModel",
+    "seed": 0,
+    "subject": 7,
+    "accuracy": 0.6444444444444445,
+    "balanced_accuracy": 0.6442687747035574,
+    "class_recall": [
+      0.6363636363636364,
+      0.6521739130434783
+    ],
+    "confusion_matrix": [
+      [
+        14,
+        8
+      ],
+      [
+        8,
+        15
+      ]
+    ],
+    "prediction_counts": [
+      22,
+      23
+    ]
+  },
+  {
+    "model": "YourModel",
+    "seed": 0,
+    "subject": 8,
+    "accuracy": 0.6222222222222222,
+    "balanced_accuracy": 0.6235177865612648,
+    "class_recall": [
+      0.5652173913043478,
+      0.6818181818181818
+    ],
+    "confusion_matrix": [
+      [
+        13,
+        10
+      ],
+      [
+        7,
+        15
+      ]
+    ],
+    "prediction_counts": [
+      20,
+      25
+    ]
+  },
+  {
+    "model": "YourModel",
+    "seed": 1,
+    "subject": 7,
+    "accuracy": 0.6222222222222222,
+    "balanced_accuracy": 0.6245059288537549,
+    "class_recall": [
+      0.7272727272727273,
+      0.5217391304347826
+    ],
+    "confusion_matrix": [
+      [
+        16,
+        6
+      ],
+      [
+        11,
+        12
+      ]
+    ],
+    "prediction_counts": [
+      27,
+      18
+    ]
+  },
+  {
+    "model": "YourModel",
+    "seed": 1,
+    "subject": 8,
+    "accuracy": 0.6444444444444445,
+    "balanced_accuracy": 0.642292490118577,
+    "class_recall": [
+      0.7391304347826086,
+      0.5454545454545454
+    ],
+    "confusion_matrix": [
+      [
+        17,
+        6
+      ],
+      [
+        10,
+        12
+      ]
+    ],
+    "prediction_counts": [
+      27,
+      18
+    ]
+  },
+  {
+    "model": "YourModel",
+    "seed": 2,
+    "subject": 7,
+    "accuracy": 0.6666666666666666,
+    "balanced_accuracy": 0.6650197628458498,
+    "class_recall": [
+      0.5909090909090909,
+      0.7391304347826086
+    ],
+    "confusion_matrix": [
+      [
+        13,
+        9
+      ],
+      [
+        6,
+        17
+      ]
+    ],
+    "prediction_counts": [
+      19,
+      26
+    ]
+  },
+  {
+    "model": "YourModel",
+    "seed": 2,
+    "subject": 8,
+    "accuracy": 0.6888888888888889,
+    "balanced_accuracy": 0.6897233201581028,
+    "class_recall": [
+      0.6521739130434783,
+      0.7272727272727273
+    ],
+    "confusion_matrix": [
+      [
+        15,
+        8
+      ],
+      [
+        6,
+        16
+      ]
+    ],
+    "prediction_counts": [
+      21,
+      24
+    ]
+  }
+]

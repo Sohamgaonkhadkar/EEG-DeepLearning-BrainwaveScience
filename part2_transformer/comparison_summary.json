@@ -1,0 +1,32 @@
+{
+  "EEGNet": {
+    "n_seeds": 3,
+    "mean_test_accuracy": 0.48148148148148145,
+    "population_std": 0.027715980642769932,
+    "worst_test_accuracy": 0.4444444444444444,
+    "best_test_accuracy": 0.5111111111111111,
+    "mean_selected_validation_accuracy": 0.6814814814814815,
+    "n_params": 2738,
+    "tokens": null
+  },
+  "VanillaEEGTransformer": {
+    "n_seeds": 2,
+    "mean_test_accuracy": 0.45,
+    "population_std": 0.016666666666666663,
+    "worst_test_accuracy": 0.43333333333333335,
+    "best_test_accuracy": 0.4666666666666667,
+    "mean_selected_validation_accuracy": 0.6111111111111112,
+    "n_params": 135746,
+    "tokens": 482
+  },
+  "YourModel": {
+    "n_seeds": 3,
+    "mean_test_accuracy": 0.4740740740740741,
+    "population_std": 0.018885257457751055,
+    "worst_test_accuracy": 0.45555555555555555,
+    "best_test_accuracy": 0.5,
+    "mean_selected_validation_accuracy": 0.6481481481481481,
+    "n_params": 232962,
+    "tokens": 17
+  }
+}

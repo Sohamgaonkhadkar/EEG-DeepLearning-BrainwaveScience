@@ -1,0 +1,26 @@
+[
+  {
+    "model": "YourModel",
+    "seed": 0,
+    "file": "part2_transformer\\checkpoints\\YourModel_seed0.pt",
+    "sha256": "303bf2d3faadf935670e398edff3fdf99fedbcf70c6de3c4c0378ec8719d416a",
+    "selected_epoch_one_based": 4,
+    "checkpoint_reload_verified": true
+  },
+  {
+    "model": "YourModel",
+    "seed": 1,
+    "file": "part2_transformer\\checkpoints\\YourModel_seed1.pt",
+    "sha256": "c7508b128db906eb14061ab84443409e1d3d098c36cd62e0ac9d56cfe168eba2",
+    "selected_epoch_one_based": 5,
+    "checkpoint_reload_verified": true
+  },
+  {
+    "model": "YourModel",
+    "seed": 2,
+    "file": "part2_transformer\\checkpoints\\YourModel_seed2.pt",
+    "sha256": "798ca480898be47663f730f85d9586807cea43f51cf30c8d074442edc24f2fe9",
+    "selected_epoch_one_based": 31,
+    "checkpoint_reload_verified": true
+  }
+]

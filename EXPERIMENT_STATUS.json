@@ -1,0 +1,191 @@
+{
+  "status": "YourModel_complete_vanilla_seed2_running",
+  "all_identified_processes_stopped": false,
+  "stopped_process_ids": [
+    34628,
+    35284,
+    36656,
+    5096,
+    27156,
+    17192
+  ],
+  "completed_part2_runs": 8,
+  "remaining_required_part2_runs": 1,
+  "interrupted": {
+    "model": "VanillaEEGTransformer",
+    "seed": 2,
+    "seed_label": "third run",
+    "planned_epochs": 40,
+    "completed_epochs": 26,
+    "history": [
+      {
+        "epoch": 0,
+        "train_loss": 0.8009,
+        "validation_loss": 0.6935,
+        "validation_acc": 0.5
+      },
+      {
+        "epoch": 1,
+        "train_loss": 0.7252,
+        "validation_loss": 0.7307,
+        "validation_acc": 0.5
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.6994,
+        "validation_loss": 0.6931,
+        "validation_acc": 0.5
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.7002,
+        "validation_loss": 0.6938,
+        "validation_acc": 0.5
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.6856,
+        "validation_loss": 0.7145,
+        "validation_acc": 0.5
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.7294,
+        "validation_loss": 0.6934,
+        "validation_acc": 0.5
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.7226,
+        "validation_loss": 0.7245,
+        "validation_acc": 0.5
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.6946,
+        "validation_loss": 0.6988,
+        "validation_acc": 0.5
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.6945,
+        "validation_loss": 0.7067,
+        "validation_acc": 0.5
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.6844,
+        "validation_loss": 0.7107,
+        "validation_acc": 0.3889
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.6427,
+        "validation_loss": 0.8232,
+        "validation_acc": 0.4667
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.5875,
+        "validation_loss": 0.9203,
+        "validation_acc": 0.4667
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.5238,
+        "validation_loss": 1.1088,
+        "validation_acc": 0.4889
+      },
+      {
+        "epoch": 13,
+        "train_loss": 0.5712,
+        "validation_loss": 1.0384,
+        "validation_acc": 0.4222
+      },
+      {
+        "epoch": 14,
+        "train_loss": 0.4415,
+        "validation_loss": 1.2433,
+        "validation_acc": 0.4556
+      },
+      {
+        "epoch": 15,
+        "train_loss": 0.3357,
+        "validation_loss": 1.5075,
+        "validation_acc": 0.4667
+      },
+      {
+        "epoch": 16,
+        "train_loss": 0.3446,
+        "validation_loss": 1.4613,
+        "validation_acc": 0.3889
+      },
+      {
+        "epoch": 17,
+        "train_loss": 0.3107,
+        "validation_loss": 1.5102,
+        "validation_acc": 0.4556
+      },
+      {
+        "epoch": 18,
+        "train_loss": 0.1958,
+        "validation_loss": 1.8777,
+        "validation_acc": 0.4222
+      },
+      {
+        "epoch": 19,
+        "train_loss": 0.1727,
+        "validation_loss": 2.1544,
+        "validation_acc": 0.4222
+      },
+      {
+        "epoch": 20,
+        "train_loss": 0.1352,
+        "validation_loss": 2.3735,
+        "validation_acc": 0.4444
+      },
+      {
+        "epoch": 21,
+        "train_loss": 0.1831,
+        "validation_loss": 2.0162,
+        "validation_acc": 0.4556
+      },
+      {
+        "epoch": 22,
+        "train_loss": 0.1395,
+        "validation_loss": 2.4007,
+        "validation_acc": 0.4444
+      },
+      {
+        "epoch": 23,
+        "train_loss": 0.0687,
+        "validation_loss": 2.4222,
+        "validation_acc": 0.4667
+      },
+      {
+        "epoch": 24,
+        "train_loss": 0.0315,
+        "validation_loss": 2.6915,
+        "validation_acc": 0.4222
+      },
+      {
+        "epoch": 25,
+        "train_loss": 0.0202,
+        "validation_loss": 2.8499,
+        "validation_acc": 0.4556
+      }
+    ],
+    "test_evaluated": false,
+    "persistent_checkpoint_available": false,
+    "reason": "Explicit user-requested stop for independent technical audit"
+  },
+  "yourmodel_completed_training_runs": 0,
+  "optional_refits_started": 0,
+  "original_and_part1_result_hashes_unchanged": true,
+  "training_accuracy_recorded": false,
+  "checkpoint_files_saved_by_completed_training": false,
+  "authorization": "Final execution directive: original YourModel seeds 0/1/2, then missing vanilla seed 2",
+  "optional_refits": "skipped",
+  "compact_model": "skipped",
+  "scaling_experiments": "skipped"
+}
