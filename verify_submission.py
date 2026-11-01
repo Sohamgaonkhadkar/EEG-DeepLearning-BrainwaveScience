@@ -50,6 +50,30 @@ def main():
  p2=records(ROOT/'part2_transformer/results.jsonl')
  assert {(r['model'],r['seed']) for r in p2 if r['epochs']==40}=={(m,s) for m in ['EEGNet','VanillaEEGTransformer','YourModel'] for s in [0,1,2]}
  checks.append('All three models have 40-epoch measurements for seeds 0/1/2')
+ plan=json.loads((ROOT/'refit_plan.json').read_text())
+ for part,n_train,n_test in [('part1_diagnose',336,84),('part2_transformer',360,90)]:
+  refits=records(ROOT/'refits'/part/'results.jsonl')
+  assert len(refits)==(2 if part=='part1_diagnose' else 9)
+  for r in refits:
+   config=plan['part1' if part=='part1_diagnose' else 'part2'][r['model']]
+   assert r['epochs']==config['epochs']==len(r['history'])
+   assert r['n_train']==n_train and r['n_test']==n_test
+   assert r['train_subjects']==r['normalization_fit_subjects']==list(range(1,9))
+   assert r['test_subjects']==[9,10] and r['checkpoint']=='predetermined_final_epoch'
+   assert all(set(h)=={'epoch','train_loss'} for h in r['history'])
+   assert abs(np.mean(np.array(r['test_predictions'])==r['test_labels'])-r['test_acc'])<1e-12
+   assert confusion_matrix(r['test_labels'],r['test_predictions'],labels=[0,1]).tolist()==r['confusion_matrix']
+  training=json.loads((ROOT/'refits'/part/'train_data_audit.json').read_text())
+  testing=json.loads((ROOT/'refits'/part/'test_data_audit.json').read_text())
+  assert [a['subject'] for a in training]==list(range(1,9))
+  assert [a['subject'] for a in testing]==[9,10]
+  train_hashes={h for a in training for h in a['epoch_hashes']}
+  test_hashes={h for a in testing for h in a['epoch_hashes']}
+  assert not train_hashes & test_hashes
+ refit_log=(ROOT/'logs/refits.log').read_text()
+ assert refit_log.index('ALL REFIT WEIGHTS FROZEN') < refit_log.index('REFIT RESULT')
+ checks.append('All eleven eight-subject refits follow frozen durations, train-only scaling and full test sets')
+
  for file in ['part1_diagnose/erd_mu.png','part1_diagnose/erd_beta.png','part2_transformer/figure.png']:
   with Image.open(ROOT/file) as image:
    image.verify()

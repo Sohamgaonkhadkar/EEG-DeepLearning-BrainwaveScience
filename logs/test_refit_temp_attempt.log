@@ -1,0 +1,1 @@
+The first refit-duration invariance test failed with PermissionError [WinError 5] when creating a subdirectory in the sandbox default Temp location. No experiment was affected. The test now uses an isolated TemporaryDirectory under the ignored workspace cache and checks its resolved scope before cleanup.

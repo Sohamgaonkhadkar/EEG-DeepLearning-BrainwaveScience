@@ -95,6 +95,41 @@ class IntegrityTests(unittest.TestCase):
         self.assertEqual(set(groups[te]),{9,10})
         self.assertEqual(len(set(tr)|set(va)|set(te)),len(groups))
 
+    def test_refit_duration_is_invariant_to_test_scores(self):
+        import contextlib
+        import io
+        import json
+        import tempfile
+        import refit
+        original_root=refit.ROOT
+        scratch=ROOT/"cache"
+        scratch.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="eeg_refit_test_",dir=scratch) as directory:
+            assert Path(directory).resolve().is_relative_to(scratch.resolve())
+            root=Path(directory)
+            for part in ["part1_diagnose","part2_transformer"]:
+                (root/part).mkdir()
+            histories=lambda best: [dict(epoch=i,validation_acc=1.0 if i+1==best else 0.0)
+                                    for i in range(7)]
+            p1=[dict(channels=c,seed=0,selected_channels=["C3"],history=histories(3),test_acc=0.)
+                for c in ["all","frontal"]]
+            p2=[dict(model=m,seed=s,epochs=40,history=histories([3,5,7][s]),test_acc=0.)
+                for m in ["EEGNet","VanillaEEGTransformer","YourModel"] for s in [0,1,2]]
+            def write():
+                for part,rows in [("part1_diagnose",p1),("part2_transformer",p2)]:
+                    (root/part/"results.jsonl").write_text("".join(json.dumps(r)+"\n" for r in rows))
+            try:
+                refit.ROOT=root; write()
+                with contextlib.redirect_stdout(io.StringIO()): refit.prepare_plan()
+                before=(root/"refit_plan.json").read_text()
+                for row in p1+p2: row["test_acc"]=1.
+                write()
+                with contextlib.redirect_stdout(io.StringIO()): refit.prepare_plan()
+                self.assertEqual(before,(root/"refit_plan.json").read_text())
+                plan=__import__("json").loads(before)
+                self.assertTrue(all(c["epochs"]==5 for c in plan["part2"].values()))
+            finally: refit.ROOT=original_root
+
     def test_invalid_data_rejected(self):
         channels=["C3","Cz","C4"]+[f"X{i}" for i in range(61)]
         x=np.random.randn(2,64,20).astype("float32"); y=np.array([0,1])

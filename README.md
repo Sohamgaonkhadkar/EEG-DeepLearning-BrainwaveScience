@@ -115,3 +115,25 @@ extracted at `../original_starter/eeg_dl_exam_3hr` and the cache at `../mne_data
 It runs the preserved original, the corrected experiments, both ERD bands and the
 three-model comparison. Required figures and small result records are versioned;
 raw EDF recordings, virtual environments and checkpoints are excluded.
+
+
+## Separate eight-subject refits
+
+The required development results remain in their original files. The added
+final refit protocol is documented in `TRAINING_STRATEGY.md`; exact durations
+and seeds are frozen in `refit_plan.json`. From this project root, run only
+after the development comparison has completed:
+
+```powershell
+python refit.py --prepare-plan
+# Review/commit the fixed plan before training, as in the local history.
+python refit.py
+python generate_report.py
+python verify_submission.py
+```
+
+The script refuses to overwrite existing refit result files. It optimizes on
+all subjects 1-8 for a validation-derived fixed duration, then scores subjects
+9-10 after every refit model has finished. Separate outputs live in `refits/`.
+The existing test cohort has already been scored for the required comparisons;
+these follow-up results do not constitute a newly untouched external test.
