@@ -123,12 +123,14 @@ def main():
     ap.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
     ap.add_argument("--results", default="results.jsonl")
     ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--deadline-guard", action="store_true",
+                    help="Apply the local execution deadline to a queued vanilla restart")
     ap.add_argument("--models", nargs="+", default=["EEGNet", "VanillaEEGTransformer", "YourModel"],
                     choices=["EEGNet", "VanillaEEGTransformer", "YourModel"])
     args = ap.parse_args()
     # Local deadline guard applies only to the queued expensive restart.
     deadline_file = Path('../execution_deadline.json')
-    if args.models == ['VanillaEEGTransformer'] and deadline_file.exists():
+    if args.deadline_guard and args.models == ['VanillaEEGTransformer'] and deadline_file.exists():
         from datetime import datetime, timezone
         deadline = datetime.fromisoformat(json.loads(deadline_file.read_text())['deadline_utc'])
         remaining = (deadline - datetime.now(timezone.utc)).total_seconds()

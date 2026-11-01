@@ -11,7 +11,8 @@ load=lambda p:[json.loads(s) for s in p.read_text().splitlines() if s.strip()]
 def summary(rows):
     lines=[]
     for name in ['EEGNet','VanillaEEGTransformer','YourModel']:
-        a=np.array([r['test_acc']*100 for r in rows if r['model']==name])
+        latest={r['seed']:r for r in rows if r['model']==name}
+        a=np.array([latest[seed]['test_acc']*100 for seed in [0,1,2]])
         assert len(a)==3
         lines.append(f'| {name} | '+ ' | '.join(f'{v:.2f}%' for v in a)+f' | {a.mean():.2f}% | {a.std():.2f} pp | {a.min():.2f}% | {a.max():.2f}% |')
     return '\n'.join(lines)
