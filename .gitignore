@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+.mne/
+mne_data/
+cache/
+*.edf
+*.npz
+*.pt
+*.pth
+*.tmp
+.env
