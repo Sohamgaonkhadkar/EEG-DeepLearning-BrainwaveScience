@@ -68,7 +68,12 @@ def main():
     # Fixed last two subjects: same test population across seeds and Part 2.
     te = idx[np.isin(groups, subjects[-2:])]
     tr = idx[~np.isin(groups, subjects[-2:])]
-    tr, va = train_test_split(tr, test_size=0.2, stratify=y[tr], random_state=args.seed)
+    validation_subjects = np.unique(groups[tr])[-2:]
+    va = tr[np.isin(groups[tr], validation_subjects)]
+    tr = tr[~np.isin(groups[tr], validation_subjects)]
+    assert not (set(groups[tr]) & set(groups[va]) or
+                set(groups[tr]) & set(groups[te]) or
+                set(groups[va]) & set(groups[te]))
 
     n_ch, n_t = X.shape[1], X.shape[2]
     model = EEGNet(n_ch, n_t)
