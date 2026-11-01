@@ -62,7 +62,12 @@ def main():
     # Subject-independent evaluation: hold out 20% for test, then 20% of the
     # remainder for validation.
     idx = np.arange(len(y))
-    tr, te = train_test_split(idx, test_size=0.2, stratify=y, random_state=args.seed)
+    subjects = np.unique(groups)
+    if len(subjects) < 5:
+        raise ValueError("At least five subjects are required for disjoint splits")
+    # Fixed last two subjects: same test population across seeds and Part 2.
+    te = idx[np.isin(groups, subjects[-2:])]
+    tr = idx[~np.isin(groups, subjects[-2:])]
     tr, va = train_test_split(tr, test_size=0.2, stratify=y[tr], random_state=args.seed)
 
     n_ch, n_t = X.shape[1], X.shape[2]
