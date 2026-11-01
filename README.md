@@ -1,181 +1,108 @@
-# EEG × Deep Learning — Live Exam (3 hours)
+# Cross-Subject EEG Motor Imagery Classification: CNN and Transformer Architectures
 
-Two parts, 90 minutes each, with a 5-minute break between them. Read the
-problem-statement PDF for the full brief; this file is the map.
+A reproducible study of EEGNet, vanilla self-attention, and EEG-specific temporal patching.
 
-```
-part1_diagnose/     Part 1 — a buggy motor-imagery pipeline you must fix and interpret
-part2_transformer/  Part 2 — give self-attention a fair shot on tiny EEG data
-```
+## Overview
 
-## Before the clock starts
+This study evaluates binary classification of imagined both-fists versus both-feet movements in unseen participants. It combines correction of an EEG analysis pipeline with a controlled comparison of three neural architectures. The temporal-patch model did not improve mean test accuracy.
 
-Set up the environment once (conda covers both parts):
+## Dataset and preprocessing
 
-```bash
-conda env create -f environment.yml
-conda activate eeg-dl-exam
-```
+PhysioNet EEGBCI subjects 1–10, imagery runs 6, 10 and 14, provide 64 channels sampled at 160 Hz. T1 maps to fists (0), T2 to feet (1).
 
-Or use pip per part (each folder has its own `requirements.txt`, they overlap):
+Part 1 filters 1–40 Hz and creates -2 to 5 second epochs before extracting 0–4 seconds for classification. Three boundary/length cases per subject are dropped, retaining 420 trials. Part 2 filters 7–30 Hz and directly epochs 0–3 seconds (481 samples), retaining all 450 trials. Neither classifier applies epoch baseline correction. ERD uses a separate pre-cue power reference. No amplitude rejection or ICA is applied.
 
-```bash
-pip install -r part1_diagnose/requirements.txt
-```
+## Methodology and architectures
 
-Then kick off the data download at the start of each part and read code while
-it runs:
+The six Part 1 corrections address executed rather than imagined runs, train/test subject mixing, train/validation subject mixing, all-data normalization, test-based checkpoint selection, and a post-cue ERD reference. Their separate commits and scientific effects are documented in [ANSWERS.md](ANSWERS.md).
 
-```bash
-cd part1_diagnose       && python train.py
-# ...later...
-cd ../part2_transformer && python main.py
-```
+| Model | Parameters | Attention tokens | Design |
+|---|---:|---:|---|
+| EEGNet | 2,738 | — | Temporal, depthwise spatial and separable convolutions |
+| Vanilla Transformer | 135,746 | 482 | One projected timestep per token plus CLS |
+| Temporal-Patch Transformer (`YourModel`) | 232,962 | 17 | Learned 32-sample Conv1d patches plus CLS |
 
-Both parts use the PhysioNet EEGBCI dataset (subjects 1–10, 64 channels,
-160 Hz), downloaded and cached automatically by MNE (~80 MB total). CPU is
-supported; the measured vanilla runs took about 17–19 minutes before additional
-training-metric evaluation. Runtime depends on architecture and machine.
+Both transformers use embedding dimension 64, four heads, three layers, feedforward width 128 and dropout 0.3. YourModel pads 481 samples to 512, retaining the final sample. Local temporal aggregation is the tested inductive bias; the tokenizer idea originates in the supplied starter. The implementation adds complete final-patch coverage and validates the comparison.
 
-## The arc
+## Experimental protocol
 
-- **Part 1 — Diagnose & Trust.** The pipeline runs cleanly but the accuracy it
-  prints is wrong. Find the planted defects, fix them, interpret the ERD, and
-  work out what signal the model is really using. You end with an EEGNet
-  baseline whose number you can *trust*.
-- **Part 2 — Build & Defend.** Carry that trusted baseline forward. Inject one
-  inductive bias into an attention-based decoder and show, honestly, whether it
-  helps — and whether you understand why.
+Training uses subjects 1–6, validation 7–8, and testing 9–10. Part 2 split sizes are 270/90/90; Part 1 sizes are 252/84/84. Channel means and standard deviations are fitted only on training data, with the inherited 1e-6 denominator stabilizer. The earliest maximum validation accuracy selects weights. Test performance never selects checkpoints.
 
-Part 1 tests rigor; Part 2 tests ideas. They're weighted equally. Accuracy is
-not scored — your reasoning is.
+All nine Part 2 runs use seeds 0, 1, 2; 40 epochs; AdamW; learning rate 0.001; weight decay 0.001; batch size 16; and cross entropy. Part 1 uses 30 epochs and batch size 64. The optional eight-subject refits described in [TRAINING_STRATEGY.md](TRAINING_STRATEGY.md) were **not executed**.
 
-## What you hand in
+## Results
 
-One GitHub repo (commit as you work, one commit per bug fix, no squashing) with
-both parts' code, an `ANSWERS.md`, and the generated artifacts
-(`results.jsonl`, `erd_mu.png`, the Part 2 figure). Then a live code
-walkthrough with Q&A. Details in the PDF.
+| Model | Seed 0 | Seed 1 | Seed 2 | Mean | Population SD |
+|---|---:|---:|---:|---:|---:|
+| EEGNet | 44.44% | 51.11% | 48.89% | 48.15% | 2.77 pp |
+| Vanilla Transformer | 43.33% | 46.67% | 54.44% | 48.15% | 4.66 pp |
+| Temporal-Patch Transformer | 46.67% | 45.56% | 50.00% | 47.41% | 1.89 pp |
 
+The corrected Part 1 all-channel and frontal accuracies are 52.38% and 54.76%. The original flawed pipeline scores 66.67%, but used a different task and split; this difference does not isolate the causal effect of any correction.
 
-## Completed assessment: reproduction
+## Interpretation and figures
 
-The official brief is `../EEG_DL_Exam_3hr.pdf`; the unmodified starter is local
-commit `b76b586` and the original ZIP remains untouched outside this repository.
-`ANSWERS.md` contains measured results and the scientific interpretation;
-`WALKTHROUGH_NOTES.md` prepares the defense. No remote is configured.
+Both transformer architectures develop large training/validation loss gaps. Validation performance also exceeds test performance, consistent with difficulty transferring across subjects. With only two validation and two test subjects, these observations cannot identify a population-level cause.
 
-Tested on CPU with Python 3.10.18; exact direct versions are recorded in
-`requirements-lock.txt` and `environment_actual.json`. The supplied Conda YAML
-remains available. For an isolated pip environment:
+Patching reduces each attention score matrix from 482×482 to 17×17, while increasing parameters. This structural reduction is not a measured end-to-end speedup or evidence of improved classification. Parameter budgets are unmatched, so the comparison does not isolate patching causally.
+
+![Mu-band ERD](part1_diagnose/erd_mu.png)
+
+Mu power relative to the -1.5 to -0.5 second reference at C3, Cz and C4. Lateral fist suppression is stronger than the medial foot contrast; scalp mixing and cue confounding limit physiological interpretation.
+
+![Test embeddings](part2_transformer/figure.png)
+
+Fixed-seed t-SNE of validation-selected YourModel seed 0. Colors show classes and markers subjects. Substantial overlap is visible; the projection does not establish classification accuracy or significance.
+
+![Loss curves](part2_transformer/training_curves.png)
+
+Preselected seed-0 loss histories. Online training loss differs from evaluation-mode training loss; unavailable historical metrics are not reconstructed.
+
+## Reproducibility
+
+Python 3.10.18 and CPU PyTorch were used; exact versions are in `requirements-lock.txt` and `environment_actual.json`. From the repository root:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
-$env:MNE_DATASETS_EEGBCI_PATH = "$PWD\mne_data"
-New-Item -ItemType Directory -Force $env:MNE_DATASETS_EEGBCI_PATH
-.\.venv\Scripts\python.exe download_data.py
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-lock.txt
+$env:MNE_DATASETS_EEGBCI_PATH = (Join-Path (Split-Path $PWD -Parent) 'mne_data')
+python download_data.py
+python -m unittest discover -s tests -v
 ```
 
-This workspace uses `../.venv/Scripts/python.exe` (a local venv with the existing
-PyTorch installation exposed through system site packages); a fresh installation
-using the commands above does not need that existing environment.
+MNE caches public EDF recordings outside the repository. On Linux/macOS activate with `source .venv/bin/activate` and set the equivalent environment variable. CPU runtimes vary substantially; vanilla attention is the most expensive configuration.
 
-Run from each part directory, using the appropriate Python executable:
+To reproduce without replacing saved evidence, run from a separate working copy. For Part 2, use a new results filename and an empty local `checkpoints/` directory:
 
 ```powershell
+cd part2_transformer
+python main.py --epochs 40 --seeds 0 1 2 --results reproduction_results.jsonl
+cd ../part1_diagnose
 python train.py --channels all --seed 0
 python train.py --channels frontal --seed 0
 python erd.py --band mu
-python erd.py --band beta
-# From part2_transformer:
-python main.py --epochs 40 --seeds 0 1 2
+cd ..
 ```
 
-Part 1 runs 30 epochs, training on subjects 1-6, selecting on 7-8 and testing on
-9-10. Part 2 uses the same split, 40 epochs for every model and every seed, with
-batch size 16 to keep the vanilla transformer's quadratic training memory modest.
-The vanilla architecture is unchanged. Its EEGNet configuration uses the Part 1
-kernel length 80 and dropout 0.5; the Part 2 input remains 7-30 Hz and 0-3 seconds,
-so its accuracy is not directly the Part 1 1-40 Hz, 0-4 second measurement.
-All models optimize raw preprocessed EEG; no handcrafted classifier features,
-data augmentation, ICA, adaptive channel selection, or test-fitted transformations
-are used. Predeclared quality checks report large amplitudes and stop on invalid
-values, flat channels, inconsistent channel order or duplicate epochs.
+Part 1 appends records to its results file, so use a separate copy for reproduction. Part 2 skips model/seed pairs already in the chosen results file and refuses to overwrite checkpoints. Required result paths remain unchanged. `python generate_report.py` and `python plot_training.py` rebuild the report and plots from the canonical saved results.
 
-`results.jsonl` is append-only. Part 2 now skips completed model/seed pairs and
-refuses to overwrite an existing selected checkpoint. Reproduce in a fresh copy
-with new results and checkpoint directories. The original
-flawed measurement is kept separately in `part1_diagnose/original_results.jsonl`.
-Transcripts are in `logs/`, quality records in each part's `data_audit.json`, and
-confusion matrices, per-class metrics, per-subject accuracies and loss histories
-are in the result records. Test metrics do not select checkpoints or seeds.
+`python verify_submission.py` performs the full original-workspace audit, including local EDFs, selected weights and the supplied starter ZIP. Those external files are intentionally not distributed through Git; the integrity tests and committed result records remain available in a fresh clone.
 
-`run_assessment.py` is the local orchestration record: it expects the original ZIP
-extracted at `../original_starter/eeg_dl_exam_3hr` and the cache at `../mne_data`.
-It runs the preserved original, the corrected experiments, both ERD bands and the
-three-model comparison. Required figures and small result records are versioned;
-raw EDF recordings, virtual environments and checkpoints are excluded.
+## Repository structure
 
-
-## Separate eight-subject refits
-
-The required development results remain in their original files. The added
-final refit protocol is documented in `TRAINING_STRATEGY.md`; optional refits were
-not run under the submission deadline. A future `refit_plan.json` must freeze exact
-durations and seeds. From this project root, run only
-after the development comparison has completed:
-
-```powershell
-python refit.py --prepare-plan
-# Review/commit the fixed plan before training, as in the local history.
-python refit.py
-python generate_report.py
-python verify_submission.py
+```text
+part1_diagnose/       Corrected EEGNet pipeline, ERD, results and figures
+part2_transformer/    Three-model comparison, results, figures and run records
+tests/               Scientific and implementation invariant checks
+logs/                Experimental and verification transcripts
+ANSWERS.md           Detailed scientific answers and all-seed measurements
+TRAINING_STRATEGY.md  Development protocol and unexecuted refit proposal
+WALKTHROUGH_NOTES.md  Technical discussion guide
+source_provenance.json  Source-data hashes
+checkpoint_manifest.json  Hashes of four locally saved selected checkpoints
 ```
 
-The script refuses to overwrite existing refit result files. It optimizes on
-all subjects 1-8 for a validation-derived fixed duration, then scores subjects
-9-10 after every refit model has finished. Separate outputs live in `refits/`.
-The existing test cohort has already been scored for the required comparisons;
-these follow-up results do not constitute a newly untouched external test.
+## Limitations
 
-## Final execution and saved artifacts
-
-The final directive resumed only original YourModel seeds 0/1/2, followed by a
-time-budget check for restarting vanilla seed 2. The first interrupted vanilla
-attempt is retained in the old log and excluded from completed-run statistics.
-`EXPERIMENT_STATUS.json` and `verification.json` record the actual completion state.
-The original five completed runs and all Part 1 results are preserved.
-
-From `part2_transformer`, model-specific reproduction commands are:
-
-```powershell
-python main.py --models YourModel --epochs 40 --seeds 0 1 2
-python main.py --models VanillaEEGTransformer --epochs 40 --seeds 2
-```
-
-New runs save best-validation weights in `part2_transformer/checkpoints/` and
-individual JSON records in `part2_transformer/run_records/`. Checkpoints are local
-submission artifacts, excluded from Git. Their reload is checked against selected
-in-memory validation predictions. No historical weights are fabricated.
-
-Part 2 has **no epoch baseline correction** (`baseline=None`), consistently with
-the completed baselines. Pre-cue referencing applies to the Part 1 ERD calculation.
-YourModel right-pads 481 samples to 512: 16 patches plus CLS, preserving the last
-sample. The 64-channel order is recorded in `data_audit.json` and checked across
-subjects; convolution uses that order without rearrangement.
-
-After results exist, regenerate the report/plots and check saved measurements:
-
-```powershell
-python generate_report.py
-python plot_training.py
-python verify_submission.py --allow-incomplete
-```
-
-`--allow-incomplete` permits only the explicitly disclosed missing vanilla seed 2;
-the verification output separately records whether the nine-run comparison is
-complete. Without that flag all nine completed runs are required. Optional refits
-are not a prerequisite for mandatory report generation or verification.
+Ten subjects provide limited evidence about population generalization. Residual artifacts, visual-cue confounding and subject shift remain plausible. Three random seeds do not create independent subject cohorts. Test subjects have already been evaluated, so later follow-up studies on them would be exploratory. The five historical runs lack saved weights and evaluation-mode training accuracy; the four subsequent runs persist weights and verify reload predictions. Local checkpoints, raw EDFs and environments are excluded from Git.

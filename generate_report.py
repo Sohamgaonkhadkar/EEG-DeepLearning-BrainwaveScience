@@ -33,7 +33,7 @@ def main():
   a=stats[m]
   rows.append('| '+m+' | '+' | '.join(pct(selected[m][s]['test_acc']) if s in selected[m] else 'Incomplete' for s in [0,1,2])+f' | {pct(a.mean())} | {100*a.std():.2f} pp | {pct(a.min())} | {pct(a.max())} |')
  pvalue=binomtest(26,45,.5,alternative='greater').pvalue
- text=f'''# EEG × Deep Learning — Assessment Answers
+ text=f'''# Cross-Subject EEG Motor Imagery: Methods and Results
 
 ## Part 1: Diagnose & Trust
 
@@ -84,7 +84,7 @@ Learned 32-sample temporal patches impose local aggregation and reduce attention
 
 ### Architectural Modification
 
-I deliberately validate the starter's existing Conv1d patch-tokenizer bet rather than claim its invention. I add right padding to cover the last partial patch, shape checks and embedding/backpropagation tests; no extra spatial, spectral or augmentation mechanism is added. Input is B×64×481, patch width/stride 32 (200 ms), padding 31 samples, 16 patch tokens plus CLS, embedding 64, four heads, three encoder layers, feedforward width 128, dropout 0.3 and output B×2 (embedding B×64).
+This study evaluates the supplied Conv1d patch tokenizer and adds right padding to cover the last partial patch, shape checks and embedding/backpropagation tests; no extra spatial, spectral or augmentation mechanism is added. Input is B×64×481, patch width/stride 32 (200 ms), padding 31 samples, 16 patch tokens plus CLS, embedding 64, four heads, three encoder layers, feedforward width 128, dropout 0.3 and output B×2 (embedding B×64).
 
 Vanilla uses 481 timestep tokens plus CLS: **482×482** scores/head/layer (232,324 entries). YourModel uses **17×17** (289 entries), a **803.89×** score-count reduction; there are four heads and three layers in each. This is quadratic-attention cost, not a measured wall-clock speedup: token projection and other operations still cost time. Parameter counts: EEGNet {selected['EEGNet'][0]['n_params']:,}; vanilla {selected['VanillaEEGTransformer'][0]['n_params']:,}; YourModel {selected['YourModel'][0]['n_params']:,}. Patching reduces tokens but increases tokenizer parameters, so it does not automatically reduce overfitting.
 
@@ -137,7 +137,7 @@ Dataset/run and cue context: [PhysioNet EEGBCI](https://physionet.org/content/ee
   text += refit_report(ROOT)
  else:
   text += '\n## Optional eight-subject refits\n\nNot executed; mandatory Stage A results are reported above. Any later refit is exploratory because subjects 9–10 have already been evaluated. Fixed durations must be frozen from validation before refit scoring.\n'
- text += '\n## Execution safeguards and historical limitations\n\nThe original five completed runs are preserved without retraining. They have no persistent selected weights or evaluation-mode training accuracy; retrospective validation-subject predictions cannot be recovered reliably. Newly completed runs save a distinct checkpoint per model/seed, verify identical validation predictions after reloading, and record evaluation-mode training accuracy and loss. Additional logging preserves RNG state; a regression check verifies identical optimization histories and selected weights. Training loss in all original histories is the online optimization loss, distinct from evaluation-mode loss. Part 2 uses baseline=None, matching all completed baselines; the later directive mentioning pre-cue correction did not change this fixed comparison. The interrupted vanilla seed-2 attempt is incomplete and excluded; its replacement starts from the original seed.\n'
+ text += '\n## Execution safeguards and historical limitations\n\nThe original five completed runs are preserved without retraining. They have no persistent selected weights or evaluation-mode training accuracy; retrospective validation-subject predictions cannot be recovered reliably. Newly completed runs save a distinct checkpoint per model/seed, verify identical validation predictions after reloading, and record evaluation-mode training accuracy and loss. Additional logging preserves RNG state; a regression check verifies identical optimization histories and selected weights. Training loss in all original histories is the online optimization loss, distinct from evaluation-mode loss. Part 2 uses baseline=None, matching all completed baselines; pre-cue referencing applies only to ERD. The interrupted vanilla seed-2 attempt is incomplete and excluded; its replacement starts from the original seed.\n'
  text += '\n## Selected-checkpoint metrics\n\nEpochs below are one-based. Training accuracy is measured in evaluation mode at the selected epoch; unavailable historical values are explicitly marked. Full class recalls and confusion matrices are saved in results.jsonl.\n\n| Model | Seed | Epoch | Train accuracy | Validation accuracy | Validation loss | S7 | S8 | S9 | S10 |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n'
  for m in models:
   for seed,r in sorted(selected[m].items()):

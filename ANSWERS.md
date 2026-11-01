@@ -1,4 +1,4 @@
-# EEG × Deep Learning — Assessment Answers
+# Cross-Subject EEG Motor Imagery: Methods and Results
 
 ## Part 1: Diagnose & Trust
 
@@ -49,7 +49,7 @@ Learned 32-sample temporal patches impose local aggregation and reduce attention
 
 ### Architectural Modification
 
-I deliberately validate the starter's existing Conv1d patch-tokenizer bet rather than claim its invention. I add right padding to cover the last partial patch, shape checks and embedding/backpropagation tests; no extra spatial, spectral or augmentation mechanism is added. Input is B×64×481, patch width/stride 32 (200 ms), padding 31 samples, 16 patch tokens plus CLS, embedding 64, four heads, three encoder layers, feedforward width 128, dropout 0.3 and output B×2 (embedding B×64).
+This study evaluates the supplied Conv1d patch tokenizer and adds right padding to cover the last partial patch, shape checks and embedding/backpropagation tests; no extra spatial, spectral or augmentation mechanism is added. Input is B×64×481, patch width/stride 32 (200 ms), padding 31 samples, 16 patch tokens plus CLS, embedding 64, four heads, three encoder layers, feedforward width 128, dropout 0.3 and output B×2 (embedding B×64).
 
 Vanilla uses 481 timestep tokens plus CLS: **482×482** scores/head/layer (232,324 entries). YourModel uses **17×17** (289 entries), a **803.89×** score-count reduction; there are four heads and three layers in each. This is quadratic-attention cost, not a measured wall-clock speedup: token projection and other operations still cost time. Parameter counts: EEGNet 2,738; vanilla 135,746; YourModel 232,962. Patching reduces tokens but increases tokenizer parameters, so it does not automatically reduce overfitting.
 
@@ -114,7 +114,7 @@ Not executed; mandatory Stage A results are reported above. Any later refit is e
 
 ## Execution safeguards and historical limitations
 
-The original five completed runs are preserved without retraining. They have no persistent selected weights or evaluation-mode training accuracy; retrospective validation-subject predictions cannot be recovered reliably. Newly completed runs save a distinct checkpoint per model/seed, verify identical validation predictions after reloading, and record evaluation-mode training accuracy and loss. Additional logging preserves RNG state; a regression check verifies identical optimization histories and selected weights. Training loss in all original histories is the online optimization loss, distinct from evaluation-mode loss. Part 2 uses baseline=None, matching all completed baselines; the later directive mentioning pre-cue correction did not change this fixed comparison. The interrupted vanilla seed-2 attempt is incomplete and excluded; its replacement starts from the original seed.
+The original five completed runs are preserved without retraining. They have no persistent selected weights or evaluation-mode training accuracy; retrospective validation-subject predictions cannot be recovered reliably. Newly completed runs save a distinct checkpoint per model/seed, verify identical validation predictions after reloading, and record evaluation-mode training accuracy and loss. Additional logging preserves RNG state; a regression check verifies identical optimization histories and selected weights. Training loss in all original histories is the online optimization loss, distinct from evaluation-mode loss. Part 2 uses baseline=None, matching all completed baselines; pre-cue referencing applies only to ERD. The interrupted vanilla seed-2 attempt is incomplete and excluded; its replacement starts from the original seed.
 
 ## Selected-checkpoint metrics
 

@@ -39,3 +39,7 @@ Report all development and refit results separately; never pick whichever
 stage scored highest. The refit experiment is a prespecified follow-up on a
 previously evaluated cohort, not a fresh external confirmation of superiority.
 A new subject cohort is needed for such confirmation.
+
+## Execution status
+
+All nine development runs are complete. No eight-subject refits were executed. The refit stage above is a proposal.
