@@ -103,6 +103,8 @@ No required execution remains incomplete. Residual artifacts and top/bottom cue 
 
 **The project is complete locally. No files have been pushed to GitHub. Awaiting the new repository URL.**
 '''
+    from presentation import display_names
+    text = display_names(text)
     (ROOT/'FINAL_REPORT.md').write_text(text,encoding='utf-8')
     print('Created FINAL_REPORT.md after successful verification')
 

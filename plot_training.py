@@ -19,7 +19,7 @@ for ax,name in zip(axes,['EEGNet','VanillaEEGTransformer','YourModel']):
         ax.plot(x,[p['train_eval_loss'] for p in h],label='training (eval)',color='tab:green')
     ax.plot(x,[p['validation_loss'] for p in h],label='validation',color='tab:orange')
     ax.axvline(record['selected_epoch']+1,color='gray',ls='--',lw=1,label='selected epoch')
-    ax.set(title=name,xlabel='epoch',ylabel='cross entropy')
+    ax.set(title={'YourModel':'Temporal-Patch EEG\nTransformer','VanillaEEGTransformer':'Vanilla EEG Transformer'}.get(name,name),xlabel='epoch',ylabel='cross entropy')
     ax.set_yscale('log'); ax.grid(alpha=.2)
     summary[name]=dict(final_training_loss_mean=float(np.mean([r['history'][-1]['train_loss'] for r in records])),
                        final_validation_loss_mean=float(np.mean([r['history'][-1]['validation_loss'] for r in records])),

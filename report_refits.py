@@ -1,6 +1,7 @@
 """Separate reporting for the user-requested eight-subject refit experiment."""
 import json
 import numpy as np
+from presentation import display_names
 
 
 def refit_report(root):
@@ -16,7 +17,7 @@ def refit_report(root):
         values=np.array([r['test_acc']*100 for r in records])
         assert [r['seed'] for r in records]==[0,1,2]
         rows.append(f"| {name} | {plan['part2'][name]['epochs']} | "+' | '.join(f'{v:.2f}%' for v in values)+f" | {values.mean():.2f}% | {values.std():.2f} pp | {values.min():.2f}% | {values.max():.2f}% |")
-    return f'''
+    return display_names(f'''
 
 ## Additional Final Refits on Subjects 1–8
 
@@ -37,4 +38,4 @@ All models were reinitialized with their declared seeds and normalization was re
 {chr(10).join(rows)}
 
 The median-duration rule and the underlying validation epochs are recorded in the frozen plan; all predictions, confusion matrices, per-class/per-subject metrics and training histories are in `refits/<part>/results.jsonl`. More training people can help, but a higher score is not guaranteed and whichever stage scores higher is not selected for reporting. Because subjects 9–10 had already been scored in the required comparisons, these are not fresh untouched external-test results; the refit decisions use validation alone, and an independent new cohort would be needed for a new confirmatory claim. `TRAINING_STRATEGY.md` explains the full chronology and independence limits.
-'''
+''')

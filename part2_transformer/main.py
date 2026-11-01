@@ -111,7 +111,7 @@ def save_figure(model, Xte, yte, device, path="figure.png"):
             m = (yte == c) & (subject_ids == subject)
             plt.scatter(emb2[m, 0], emb2[m, 1], s=24, alpha=0.75,
                         c=color, marker=marker, label=f"{name}, S{subject:02d}")
-    plt.legend(); plt.title("Test-subject embeddings (YourModel, seed 0)")
+    plt.legend(); plt.title("Temporal-Patch EEG Transformer\nTest-subject embeddings (seed 0)")
     plt.xlabel('t-SNE dimension 1'); plt.ylabel('t-SNE dimension 2')
     plt.tight_layout(); plt.savefig(path, dpi=130)
     print(f"  saved {path}")

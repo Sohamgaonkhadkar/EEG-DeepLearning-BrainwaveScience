@@ -17,7 +17,7 @@ Motor imagery EEG contains weak, spatially distributed mu- and beta-band signatu
 This project has two connected components:
 
 1. **Pipeline diagnosis:** correct six experimentally consequential defects in an EEGNet workflow; evaluate event-related desynchronization (ERD) and a possible visual-cue confound.
-2. **Controlled model study:** compare an EEG-specific convolutional baseline, a vanilla timestep-token Transformer, and a temporal-patch Transformer using fixed subject partitions and three random seeds.
+2. **Controlled model study:** compare an EEG-specific convolutional baseline, a vanilla timestep-token Transformer, and a Temporal-Patch EEG Transformer using fixed subject partitions and three random seeds.
 
 The study prioritizes **subject-disjoint evaluation, explicit checkpoint selection, and reproducibility** over choosing the best observed seed.
 
@@ -44,7 +44,7 @@ The test subjects (9 and 10) were not used to fit normalization parameters, opti
 |:--|--:|--:|--:|--:|--:|
 | EEGNet | 44.44% | 51.11% | 48.89% | **48.15%** | 2.77 pp |
 | Vanilla EEG Transformer | 43.33% | 46.67% | 54.44% | **48.15%** | 4.66 pp |
-| Temporal-Patch Transformer (`YourModel`) | 46.67% | 45.56% | 50.00% | **47.41%** | 1.89 pp |
+| Temporal-Patch EEG Transformer (`YourModel`) | 46.67% | 45.56% | 50.00% | **47.41%** | 1.89 pp |
 
 Balanced binary guessing has an expected accuracy of 50%. A majority-class predictor fixed on the training subjects scores **48.89%** on the test set. None of the neural models establishes a meaningful generalization advantage on these two unseen people.
 
@@ -54,7 +54,7 @@ Mean validation-selected accuracy was **68.15%** for EEGNet, **57.41%** for vani
 
 ### Architectural and computational comparison
 
-| Metric | EEGNet | Vanilla Transformer | Temporal-Patch Transformer |
+| Metric | EEGNet | Vanilla Transformer | Temporal-Patch EEG Transformer |
 |:--|--:|--:|--:|
 | Parameters | **2,738** | 135,746 | 232,962 |
 | Tokens including CLS | — | **482** | **17** |
@@ -82,18 +82,23 @@ These scores are **not a controlled before/after accuracy ablation**: the task a
 The main leakage safeguard is splitting **people**, not randomly splitting epochs belonging to the same person.
 
 ```mermaid
-flowchart TD
-    A["EEGBCI · subjects 1–10<br/>imagery runs 6 / 10 / 14"] --> B["7–30 Hz filter<br/>0–3 s · 64 × 481"]
-    B --> C["Subject-disjoint partitions"]
-    C --> D["Train · subjects 1–6<br/>270 trials"]
-    C --> E["Validate · subjects 7–8<br/>90 trials"]
-    C --> F["Test · subjects 9–10<br/>90 trials"]
-    D --> G["Training-only channel scaling"]
-    G --> H["Fit three models · three seeds"]
-    H --> I["Restore best validation checkpoint"]
-    E --> I
-    I --> J["Evaluate held-out subjects"]
-    F --> J
+%%{init: {"flowchart": {"htmlLabels": false, "nodeSpacing": 24, "rankSpacing": 32}, "themeVariables": {"fontSize": "14px"}}}%%
+flowchart TB
+    A["EEGBCI<br/>Dataset"] --> B["Preprocessing<br/>7–30 Hz; 0–3 s"]
+    B --> C["Subject-Disjoint<br/>Split"]
+    C --> D["Training<br/>Subjects 1–6"]
+    C --> E["Validation<br/>Subjects 7–8"]
+    C --> F["Testing<br/>Subjects 9–10"]
+    D --> N["Training-Only<br/>Normalization"]
+    N --> M["Model<br/>Training"]
+    E --> V["Apply Training<br/>Normalization"]
+    F --> T["Apply Training<br/>Normalization"]
+    N -. Fitted statistics .-> V
+    N -. Fitted statistics .-> T
+    M --> S["Validation-Based<br/>Checkpoint Selection"]
+    V --> S
+    S --> H["Held-Out<br/>Evaluation"]
+    T --> H
 ```
 
 ### Preprocessing and retained trials
@@ -125,20 +130,27 @@ Temporal convolutions extract frequency-related structure, depthwise spatial fil
 
 Every EEG sample index becomes an embedded 64-dimensional token. Adding a learned classification token produces **482 tokens**. The encoder contains **three layers, four attention heads, and 128-dimensional feedforward layers**.
 
-### Temporal-Patch Transformer — local temporal aggregation
+### Temporal-Patch EEG Transformer — local temporal aggregation
 
 A learned `Conv1d` tokenizer groups **32 samples (200 ms)** over all 64 channels. Right-padding from 481 to 512 samples retains the final observation, yielding **16 temporal patches plus CLS = 17 tokens**. Transformer width, head count and depth match the vanilla model.
 
 ```mermaid
+%%{init: {"flowchart": {"htmlLabels": false, "nodeSpacing": 24, "rankSpacing": 32}, "themeVariables": {"fontSize": "14px"}}}%%
 flowchart LR
-    X["EEG epoch · 64 × 481"] --> V["Timestep projection"]
-    X --> P["Pad to 512 · Conv1d<br/>kernel 32, stride 32"]
-    V --> VT["481 tokens + CLS"]
-    P --> PT["16 patches + CLS"]
-    VT --> A["3 Transformer layers"]
-    PT --> B["3 Transformer layers"]
-    A --> Y["Fists / Feet"]
-    B --> Y
+    subgraph VAN["Vanilla EEG Transformer"]
+        direction TB
+        V0["Input<br/>64 × 481"] --> V1["Per-Timestep<br/>Projection"]
+        V1 --> V2["482 Tokens<br/>Including CLS"]
+        V2 --> V3["Transformer<br/>Encoder"]
+        V3 --> V4["Classification"]
+    end
+    subgraph PATCH["Temporal-Patch EEG Transformer"]
+        direction TB
+        P0["Input<br/>64 × 481"] --> P1["Temporal Conv1d<br/>Patch Size: 32"]
+        P1 --> P2["17 Tokens<br/>Including CLS"]
+        P2 --> P3["Transformer<br/>Encoder"]
+        P3 --> P4["Classification"]
+    end
 ```
 
 **Inductive-bias hypothesis:** learn local temporal features before global attention. This reduces attention sequence length but does not explicitly compute mu/beta power, ERD or scalp-neighborhood structure.
@@ -157,7 +169,7 @@ Negative ERD indicates a reduction in bandpower relative to pre-cue rest. Latera
 
 ### Learned embedding structure
 
-![t-SNE of temporal-patch Transformer embeddings on the test subjects](part2_transformer/figure.png)
+![t-SNE of Temporal-Patch EEG Transformer embeddings on the test subjects](part2_transformer/figure.png)
 
 Fixed-seed t-SNE of the validation-selected patch-model seed 0 on subjects 9–10. Color denotes imagined class; marker shape denotes subject. Classes substantially overlap. The projection is descriptive, not a significance test or proof of physiological separation.
 

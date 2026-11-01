@@ -51,9 +51,9 @@ Learned 32-sample temporal patches impose local aggregation and reduce attention
 
 This study evaluates the supplied Conv1d patch tokenizer and adds right padding to cover the last partial patch, shape checks and embedding/backpropagation tests; no extra spatial, spectral or augmentation mechanism is added. Input is B×64×481, patch width/stride 32 (200 ms), padding 31 samples, 16 patch tokens plus CLS, embedding 64, four heads, three encoder layers, feedforward width 128, dropout 0.3 and output B×2 (embedding B×64).
 
-Vanilla uses 481 timestep tokens plus CLS: **482×482** scores/head/layer (232,324 entries). YourModel uses **17×17** (289 entries), a **803.89×** score-count reduction; there are four heads and three layers in each. This is quadratic-attention cost, not a measured wall-clock speedup: token projection and other operations still cost time. Parameter counts: EEGNet 2,738; vanilla 135,746; YourModel 232,962. Patching reduces tokens but increases tokenizer parameters, so it does not automatically reduce overfitting.
+Vanilla uses 481 timestep tokens plus CLS: **482×482** scores/head/layer (232,324 entries). Temporal-Patch EEG Transformer uses **17×17** (289 entries), a **803.89×** score-count reduction; there are four heads and three layers in each. This is quadratic-attention cost, not a measured wall-clock speedup: token projection and other operations still cost time. Parameter counts: EEGNet 2,738; vanilla 135,746; Temporal-Patch EEG Transformer 232,962. Patching reduces tokens but increases tokenizer parameters, so it does not automatically reduce overfitting.
 
-EEGNet uses eight temporal kernels of width 80, depthwise full-electrode convolution with multiplier two, then depthwise/separable temporal convolution with 16 features, ELU, batch normalization, pooling factors 4 and 8, dropout 0.5 and a two-class linear head. Vanilla projects each 64-channel timestep into dimension 64, adds CLS and learned positions, applies three post-norm transformer layers (four heads, feedforward width 128, GELU, dropout 0.3), and classifies the normalized CLS embedding. YourModel preserves that transformer stack but replaces timestep projection with the temporal Conv1d tokenizer. All encoder layers have distinct parameter storage despite identical initial cloned layer values; this inherited initialization is unchanged across the two transformer configurations.
+EEGNet uses eight temporal kernels of width 80, depthwise full-electrode convolution with multiplier two, then depthwise/separable temporal convolution with 16 features, ELU, batch normalization, pooling factors 4 and 8, dropout 0.5 and a two-class linear head. Vanilla projects each 64-channel timestep into dimension 64, adds CLS and learned positions, applies three post-norm transformer layers (four heads, feedforward width 128, GELU, dropout 0.3), and classifies the normalized CLS embedding. Temporal-Patch EEG Transformer preserves that transformer stack but replaces timestep projection with the temporal Conv1d tokenizer. All encoder layers have distinct parameter storage despite identical initial cloned layer values; this inherited initialization is unchanged across the two transformer configurations.
 
 ### Experimental Setup
 
@@ -67,15 +67,15 @@ Uniform random guessing is 50%. A majority-class baseline fitted on optimization
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | EEGNet | 44.44% | 51.11% | 48.89% | 48.15% | 2.77 pp | 44.44% | 51.11% |
 | VanillaEEGTransformer | 43.33% | 46.67% | 54.44% | 48.15% | 4.66 pp | 43.33% | 54.44% |
-| YourModel | 46.67% | 45.56% | 50.00% | 47.41% | 1.89 pp | 45.56% | 50.00% |
+| Temporal-Patch EEG Transformer | 46.67% | 45.56% | 50.00% | 47.41% | 1.89 pp | 45.56% | 50.00% |
 
 ### Interpretation
 
-YourModel's mean accuracy is 47.41%, compared with EEGNet 48.15% and vanilla 48.15%. Completed seed counts are EEGNet 3, vanilla 3, YourModel 3; missing runs are excluded from summaries. Descriptive comparisons do not select a model. The all-seed scores above provide the comparison; these explicitly show whether the ordering repeats across the three seeds. The measured standard deviations describe seed sensitivity on this fixed two-person test population, not uncertainty across new subjects or proof that patching improves optimization. EEGNet's temporal/spatial convolution and pooling constrain the hypothesis space; vanilla must learn useful structure from few people, while a large patch projection can itself overfit. More held-out subject folds, matched parameter budgets, patch-size ablation selected on validation data, loss-curve analysis and independent cue controls would strengthen any conclusion.
+Temporal-Patch EEG Transformer's mean accuracy is 47.41%, compared with EEGNet 48.15% and vanilla 48.15%. Completed seed counts are EEGNet 3, vanilla 3, Temporal-Patch EEG Transformer 3; missing runs are excluded from summaries. Descriptive comparisons do not select a model. The all-seed scores above provide the comparison; these explicitly show whether the ordering repeats across the three seeds. The measured standard deviations describe seed sensitivity on this fixed two-person test population, not uncertainty across new subjects or proof that patching improves optimization. EEGNet's temporal/spatial convolution and pooling constrain the hypothesis space; vanilla must learn useful structure from few people, while a large patch projection can itself overfit. More held-out subject folds, matched parameter budgets, patch-size ablation selected on validation data, loss-curve analysis and independent cue controls would strengthen any conclusion.
 
 ### Figure
 
-The figure uses the validation-selected original YourModel seed 0, preselected independently of test accuracy. Fixed-random-seed (0) t-SNE projects its 64-dimensional CLS embeddings from all 90 test trials; colors identify fists/feet and markers identify subjects 9/10. Axes are arbitrary t-SNE coordinates. It is a descriptive visualization of an already evaluated cohort, not a model-selection instrument: local neighborhoods and global distances can be distorted, and visible separation would not establish accuracy, statistical significance or physiological specificity. Visual inspection shows substantial overlap of the two class colors and both subject markers, without a clean class-separated cluster structure.
+The figure uses the validation-selected original Temporal-Patch EEG Transformer seed 0, preselected independently of test accuracy. Fixed-random-seed (0) t-SNE projects its 64-dimensional CLS embeddings from all 90 test trials; colors identify fists/feet and markers identify subjects 9/10. Axes are arbitrary t-SNE coordinates. It is a descriptive visualization of an already evaluated cohort, not a model-selection instrument: local neighborhoods and global distances can be distorted, and visible separation would not establish accuracy, statistical significance or physiological specificity. Visual inspection shows substantial overlap of the two class colors and both subject markers, without a clean class-separated cluster structure.
 
 ### Data Quality and Leakage Audit
 
@@ -128,9 +128,9 @@ Epochs below are one-based. Training accuracy is measured in evaluation mode at 
 | VanillaEEGTransformer | 0 | 26 | Unavailable | 60.00% | 0.7097 | Unavailable | Unavailable | 42.22% | 44.44% |
 | VanillaEEGTransformer | 1 | 31 | Unavailable | 62.22% | 1.6209 | Unavailable | Unavailable | 46.67% | 46.67% |
 | VanillaEEGTransformer | 2 | 1 | 50.74% | 50.00% | 0.6935 | 51.11% | 48.89% | 62.22% | 46.67% |
-| YourModel | 0 | 4 | 75.93% | 63.33% | 0.6510 | 64.44% | 62.22% | 42.22% | 51.11% |
-| YourModel | 1 | 5 | 72.59% | 63.33% | 0.7052 | 62.22% | 64.44% | 40.00% | 51.11% |
-| YourModel | 2 | 31 | 100.00% | 67.78% | 1.3139 | 66.67% | 68.89% | 51.11% | 48.89% |
+| Temporal-Patch EEG Transformer | 0 | 4 | 75.93% | 63.33% | 0.6510 | 64.44% | 62.22% | 42.22% | 51.11% |
+| Temporal-Patch EEG Transformer | 1 | 5 | 72.59% | 63.33% | 0.7052 | 62.22% | 64.44% | 40.00% | 51.11% |
+| Temporal-Patch EEG Transformer | 2 | 31 | 100.00% | 67.78% | 1.3139 | 66.67% | 68.89% | 51.11% | 48.89% |
 
 ## Trial accounting
 
@@ -151,9 +151,9 @@ Part 1 has 45 task annotations per subject but retains 42: its full -2 to 5 seco
 
 ## Generalization evidence
 
-Vanilla seeds 0/1 end with online training losses 0.090/0.100 versus validation losses 1.533/1.764: a strong overfitting signal. Validation-to-test differences suggest subject-dependent generalization, but only two people in each cohort cannot identify a population-level cause. A suboptimal learning rate is unverified; no baseline hyperparameters were changed. Historical EEGNet validation predictions were not saved, so we cannot determine retrospectively whether S7 or S8 dominated its validation score. Newly saved YourModel validation predictions permit that descriptive check without retraining. No test-based preprocessing or architecture selection was performed. Optional compact models, robust scaling and refits were skipped under the submission deadline.
+Vanilla seeds 0/1 end with online training losses 0.090/0.100 versus validation losses 1.533/1.764: a strong overfitting signal. Validation-to-test differences suggest subject-dependent generalization, but only two people in each cohort cannot identify a population-level cause. A suboptimal learning rate is unverified; no baseline hyperparameters were changed. Historical EEGNet validation predictions were not saved, so we cannot determine retrospectively whether S7 or S8 dominated its validation score. Newly saved Temporal-Patch EEG Transformer validation predictions permit that descriptive check without retraining. No test-based preprocessing or architecture selection was performed. Optional compact models, robust scaling and refits were skipped under the submission deadline.
 
-Across the three YourModel runs, S7/S8 validation accuracy differs by only 2.22 percentage points within each seed, and the easier subject changes. Neither validation subject consistently dominates. Saved predictions show mild class preferences, not single-class collapse. All three YourModel runs develop substantial late train/validation loss gaps. The patch model does not exceed EEGNet in mean test accuracy; the proposed accuracy benefit is not established. Reduced attention-score count is demonstrated structurally, while its causal contribution to generalization is not isolated by this unequal-parameter comparison.
+Across the three Temporal-Patch EEG Transformer runs, S7/S8 validation accuracy differs by only 2.22 percentage points within each seed, and the easier subject changes. Neither validation subject consistently dominates. Saved predictions show mild class preferences, not single-class collapse. All three Temporal-Patch EEG Transformer runs develop substantial late train/validation loss gaps. The patch model does not exceed EEGNet in mean test accuracy; the proposed accuracy benefit is not established. Reduced attention-score count is demonstrated structurally, while its causal contribution to generalization is not isolated by this unequal-parameter comparison.
 
 ### Defense questions
 
@@ -165,12 +165,12 @@ Balanced accuracy is the mean of fists and feet recall. Prediction counts use fi
 
 | Model | Seed | Subject | Balanced accuracy | Fists recall | Feet recall | Predicted fists/feet |
 |---|---:|---:|---:|---:|---:|---:|
-| YourModel | 0 | 7 | 64.43% | 63.64% | 65.22% | 22/23 |
-| YourModel | 0 | 8 | 62.35% | 56.52% | 68.18% | 20/25 |
-| YourModel | 1 | 7 | 62.45% | 72.73% | 52.17% | 27/18 |
-| YourModel | 1 | 8 | 64.23% | 73.91% | 54.55% | 27/18 |
-| YourModel | 2 | 7 | 66.50% | 59.09% | 73.91% | 19/26 |
-| YourModel | 2 | 8 | 68.97% | 65.22% | 72.73% | 21/24 |
+| Temporal-Patch EEG Transformer | 0 | 7 | 64.43% | 63.64% | 65.22% | 22/23 |
+| Temporal-Patch EEG Transformer | 0 | 8 | 62.35% | 56.52% | 68.18% | 20/25 |
+| Temporal-Patch EEG Transformer | 1 | 7 | 62.45% | 72.73% | 52.17% | 27/18 |
+| Temporal-Patch EEG Transformer | 1 | 8 | 64.23% | 73.91% | 54.55% | 27/18 |
+| Temporal-Patch EEG Transformer | 2 | 7 | 66.50% | 59.09% | 73.91% | 19/26 |
+| Temporal-Patch EEG Transformer | 2 | 8 | 68.97% | 65.22% | 72.73% | 21/24 |
 | VanillaEEGTransformer | 2 | 7 | 50.00% | 0.00% | 100.00% | 0/45 |
 | VanillaEEGTransformer | 2 | 8 | 50.00% | 0.00% | 100.00% | 0/45 |
 

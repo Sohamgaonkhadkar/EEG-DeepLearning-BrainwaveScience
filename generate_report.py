@@ -177,6 +177,8 @@ Dataset/run and cue context: [PhysioNet EEGBCI](https://physionet.org/content/ee
       mean_selected_validation_accuracy=float(np.mean([r['best_validation_acc'] for r in selected[m].values()])),
       n_params=selected[m][0]['n_params'],tokens={'EEGNet':None,'VanillaEEGTransformer':482,'YourModel':17}[m]) for m in models}
  (ROOT/'part2_transformer/comparison_summary.json').write_text(json.dumps(summary,indent=2))
+ from presentation import display_names
+ text = display_names(text)
  (ROOT/'ANSWERS.md').write_text(text,encoding='utf-8')
  print('Generated ANSWERS.md from real records')
 
